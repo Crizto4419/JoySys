@@ -34,14 +34,16 @@ class Sucursal extends Model
             'empleado_sucursal',
             'sucursal_id',
             'usuario_id'
-        )->withPivot([
-            'id',
-            'es_principal',
-            'fecha_inicio',
-            'fecha_fin',
-            'estado',
-            'asignado_por',
-        ])->withTimestamps();
+        )
+            ->withPivot([
+                'id',
+                'es_principal',
+                'fecha_inicio',
+                'fecha_fin',
+                'estado',
+                'asignado_por',
+            ])
+            ->withTimestamps();
     }
 
     public function empleadosVigentes(): BelongsToMany
@@ -54,5 +56,23 @@ class Sucursal extends Model
                 '<=',
                 now()->toDateString()
             );
+    }
+
+    public function piezas(): HasMany
+    {
+        return $this->hasMany(
+            Pieza::class,
+            'sucursal_id',
+            'id'
+        );
+    }
+
+    public function existencias(): HasMany
+    {
+        return $this->hasMany(
+            Existencia::class,
+            'sucursal_id',
+            'id'
+        );
     }
 }
