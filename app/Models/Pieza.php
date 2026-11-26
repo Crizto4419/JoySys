@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pieza extends Model
 {
@@ -67,6 +68,15 @@ class Pieza extends Model
         return $this->belongsTo(
             Pureza::class,
             'pureza_id',
+            'id'
+        );
+    }
+
+    public function movimientosInventario(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'pieza_id',
             'id'
         );
     }

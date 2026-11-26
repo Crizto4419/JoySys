@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,7 +27,6 @@ use Illuminate\Notifications\Notifiable;
 ])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'users';
@@ -79,14 +77,16 @@ class User extends Authenticatable
             'empleado_sucursal',
             'usuario_id',
             'sucursal_id'
-        )->withPivot([
-            'id',
-            'es_principal',
-            'fecha_inicio',
-            'fecha_fin',
-            'estado',
-            'asignado_por',
-        ])->withTimestamps();
+        )
+            ->withPivot([
+                'id',
+                'es_principal',
+                'fecha_inicio',
+                'fecha_fin',
+                'estado',
+                'asignado_por',
+            ])
+            ->withTimestamps();
     }
 
     public function sucursalesVigentes(): BelongsToMany
@@ -105,5 +105,32 @@ class User extends Authenticatable
     {
         return $this->sucursalesVigentes()
             ->wherePivot('es_principal', true);
+    }
+
+    public function movimientosInventario(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'usuario_id',
+            'id'
+        );
+    }
+
+    public function incidenciasReportadas(): HasMany
+    {
+        return $this->hasMany(
+            IncidenciaInventario::class,
+            'usuario_reporta_id',
+            'id'
+        );
+    }
+
+    public function historialPrecios(): HasMany
+    {
+        return $this->hasMany(
+            HistorialPrecio::class,
+            'usuario_id',
+            'id'
+        );
     }
 }

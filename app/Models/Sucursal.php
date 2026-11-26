@@ -75,4 +75,22 @@ class Sucursal extends Model
             'id'
         );
     }
+
+    public function movimientosInventario(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'sucursal_id',
+            'id'
+        );
+    }
+
+    public function incidenciasInventario(): HasMany
+    {
+        return $this->hasMany(
+            IncidenciaInventario::class,
+            'sucursal_id',
+            'id'
+        );
+    }
 }

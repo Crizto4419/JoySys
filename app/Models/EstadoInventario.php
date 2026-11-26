@@ -32,4 +32,22 @@ class EstadoInventario extends Model
             'id'
         );
     }
+
+    public function movimientosOrigen(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'estado_origen_id',
+            'id'
+        );
+    }
+
+    public function movimientosDestino(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'estado_destino_id',
+            'id'
+        );
+    }
 }

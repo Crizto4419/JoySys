@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Producto extends Model
 {
@@ -84,6 +85,42 @@ class Producto extends Model
     {
         return $this->hasMany(
             Existencia::class,
+            'producto_id',
+            'id'
+        );
+    }
+
+    public function movimientosInventario(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            'producto_id',
+            'id'
+        );
+    }
+
+    public function incidenciasInventario(): HasMany
+    {
+        return $this->hasMany(
+            IncidenciaInventario::class,
+            'producto_id',
+            'id'
+        );
+    }
+
+    public function precioVigente(): HasOne
+    {
+        return $this->hasOne(
+            PrecioProducto::class,
+            'producto_id',
+            'id'
+        );
+    }
+
+    public function historialPrecios(): HasMany
+    {
+        return $this->hasMany(
+            HistorialPrecio::class,
             'producto_id',
             'id'
         );
