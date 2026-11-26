@@ -109,4 +109,22 @@ class Sucursal extends Model
             'id'
         );
     }
+
+    public function cajas(): HasMany
+    {
+        return $this->hasMany(
+            Caja::class,
+            'sucursal_id',
+            'id'
+        );
+    }
+
+    public function sesionesCaja(): HasMany
+    {
+        return $this->hasMany(
+            SesionCaja::class,
+            'sucursal_id',
+            'id'
+        );
+    }
 }

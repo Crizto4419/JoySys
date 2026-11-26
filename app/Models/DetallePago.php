@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DetallePago extends Model
 {
@@ -51,6 +52,15 @@ class DetallePago extends Model
         return $this->hasMany(
             self::class,
             'detalle_pago_original_id',
+            'id'
+        );
+    }
+
+    public function movimientoCaja(): HasOne
+    {
+        return $this->hasOne(
+            MovimientoCaja::class,
+            'detalle_pago_id',
             'id'
         );
     }

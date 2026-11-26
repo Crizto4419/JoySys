@@ -149,4 +149,40 @@ class User extends Authenticatable
             'id'
         );
     }
+
+    public function sesionesCaja(): HasMany
+    {
+        return $this->hasMany(
+            SesionCaja::class,
+            'usuario_id',
+            'id'
+        );
+    }
+
+    public function sesionesCajaCerradas(): HasMany
+    {
+        return $this->hasMany(
+            SesionCaja::class,
+            'cerrada_por',
+            'id'
+        );
+    }
+
+    public function movimientosCaja(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoCaja::class,
+            'usuario_id',
+            'id'
+        );
+    }
+
+    public function movimientosCajaAutorizados(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoCaja::class,
+            'autorizado_por',
+            'id'
+        );
+    }
 }
