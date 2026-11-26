@@ -2,39 +2,85 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
+
+    protected static ?string $password = null;
 
     /**
-     * Define the model's default state.
+     * Define el estado predeterminado del usuario de prueba.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'username' => 'test_' . Str::lower(
+                (string) Str::ulid()
+            ),
+
+            'name' => fake()->firstName(),
+
+            'apellidos' => fake()->lastName()
+                . ' '
+                . fake()->lastName(),
+
+            'codigo_empleado' => 'TST-' . Str::upper(
+                (string) Str::ulid()
+            ),
+
+            'telefono' => null,
+
             'email' => fake()->unique()->safeEmail(),
+
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+
+            'password' => static::$password ??= Hash::make(
+                'JoySys-Test-Only-2026!'
+            ),
+
+            'role_id' => function () {
+                $rol = Role::query()
+                    ->where('slug', 'empleado')
+                    ->where('estado', 'activo')
+                    ->first();
+
+                if (!$rol) {
+                    throw new RuntimeException(
+                        'El rol empleado debe existir y estar activo antes de utilizar UserFactory.'
+                    );
+                }
+
+                return $rol->id;
+            },
+
+            'estado' => 'activo',
+
+            'intentos_fallidos' => 0,
+
+            'bloqueado_hasta' => null,
+
+            'ultimo_acceso' => null,
+
             'remember_token' => Str::random(10),
+
+            'deleted_at' => null,
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indica que el correo del usuario no esta verificado.
      */
     public function unverified(): static
     {
