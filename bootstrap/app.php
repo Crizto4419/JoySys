@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\VerificarSucursalActiva;
 use App\Http\Middleware\VerificarUsuarioActivo;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'usuario.activo' => VerificarUsuarioActivo::class,
+            'sucursal.activa' => VerificarSucursalActiva::class,
         ]);
 
         $middleware->redirectGuestsTo('/login');

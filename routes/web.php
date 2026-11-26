@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Services\Auth\ContextoSucursalService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -29,9 +31,20 @@ Route::middleware('auth')->group(function () {
     )->name('logout');
 
     Route::middleware('usuario.activo')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })
+        Route::get(
+            '/dashboard',
+            function (
+                Request $request,
+                ContextoSucursalService $contextoSucursal
+            ) {
+                $sucursalOperativa = $contextoSucursal
+                    ->obtenerSucursal($request->user());
+
+                return view('dashboard', [
+                    'sucursalOperativa' => $sucursalOperativa,
+                ]);
+            }
+        )
             ->middleware("can:joysys.permiso,'dashboard.ver'")
             ->name('dashboard');
     });
