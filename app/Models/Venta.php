@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Venta extends Model
 {
@@ -64,6 +65,17 @@ class Venta extends Model
         return $this->hasMany(
             DetalleVenta::class,
             'venta_id',
+            'id'
+        );
+    }
+
+    public function pagos(): MorphMany
+    {
+        return $this->morphMany(
+            Pago::class,
+            'referencia',
+            'referencia_tipo',
+            'referencia_id',
             'id'
         );
     }

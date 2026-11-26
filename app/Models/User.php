@@ -77,16 +77,14 @@ class User extends Authenticatable
             'empleado_sucursal',
             'usuario_id',
             'sucursal_id'
-        )
-            ->withPivot([
-                'id',
-                'es_principal',
-                'fecha_inicio',
-                'fecha_fin',
-                'estado',
-                'asignado_por',
-            ])
-            ->withTimestamps();
+        )->withPivot([
+            'id',
+            'es_principal',
+            'fecha_inicio',
+            'fecha_fin',
+            'estado',
+            'asignado_por',
+        ])->withTimestamps();
     }
 
     public function sucursalesVigentes(): BelongsToMany
@@ -139,6 +137,15 @@ class User extends Authenticatable
         return $this->hasMany(
             Venta::class,
             'usuario_id',
+            'id'
+        );
+    }
+
+    public function pagosRecibidos(): HasMany
+    {
+        return $this->hasMany(
+            Pago::class,
+            'recibido_por',
             'id'
         );
     }

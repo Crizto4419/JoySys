@@ -34,16 +34,14 @@ class Sucursal extends Model
             'empleado_sucursal',
             'sucursal_id',
             'usuario_id'
-        )
-            ->withPivot([
-                'id',
-                'es_principal',
-                'fecha_inicio',
-                'fecha_fin',
-                'estado',
-                'asignado_por',
-            ])
-            ->withTimestamps();
+        )->withPivot([
+            'id',
+            'es_principal',
+            'fecha_inicio',
+            'fecha_fin',
+            'estado',
+            'asignado_por',
+        ])->withTimestamps();
     }
 
     public function empleadosVigentes(): BelongsToMany
@@ -98,6 +96,15 @@ class Sucursal extends Model
     {
         return $this->hasMany(
             Venta::class,
+            'sucursal_id',
+            'id'
+        );
+    }
+
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(
+            Pago::class,
             'sucursal_id',
             'id'
         );
