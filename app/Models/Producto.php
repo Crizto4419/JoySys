@@ -125,4 +125,13 @@ class Producto extends Model
             'id'
         );
     }
+
+    public function detallesVenta(): HasMany
+    {
+        return $this->hasMany(
+            DetalleVenta::class,
+            'producto_id',
+            'id'
+        );
+    }
 }

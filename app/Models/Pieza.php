@@ -80,4 +80,13 @@ class Pieza extends Model
             'id'
         );
     }
+
+    public function detallesVenta(): HasMany
+    {
+        return $this->hasMany(
+            DetalleVenta::class,
+            'pieza_id',
+            'id'
+        );
+    }
 }

@@ -133,4 +133,13 @@ class User extends Authenticatable
             'id'
         );
     }
+
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(
+            Venta::class,
+            'usuario_id',
+            'id'
+        );
+    }
 }

@@ -93,4 +93,13 @@ class Sucursal extends Model
             'id'
         );
     }
+
+    public function ventas(): HasMany
+    {
+        return $this->hasMany(
+            Venta::class,
+            'sucursal_id',
+            'id'
+        );
+    }
 }
