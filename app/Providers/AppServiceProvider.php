@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Models\Venta;
+use App\Services\Auth\AutorizacionService;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,5 +27,13 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'venta' => Venta::class,
         ]);
+
+        Gate::define(
+            'joysys.permiso',
+            function (User $usuario, string $clave): bool {
+                return app(AutorizacionService::class)
+                    ->tienePermiso($usuario, $clave);
+            }
+        );
     }
 }

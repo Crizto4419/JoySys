@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Permiso;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,22 @@ class AutenticacionTest extends TestCase
             ]
         );
 
+        $permiso = Permiso::firstOrCreate(
+            ['clave' => 'dashboard.ver'],
+            [
+                'nombre' => 'Consultar dashboard',
+                'modulo' => 'dashboard',
+                'descripcion' => null,
+            ]
+        );
+
+        $rol->permisos()->syncWithoutDetaching([
+            $permiso->id => [
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
         return User::factory()->create([
             'role_id' => $rol->id,
             'password' => self::PASSWORD,
@@ -136,6 +153,10 @@ class AutenticacionTest extends TestCase
         $this->assertSame(0, $usuario->intentos_fallidos);
         $this->assertNull($usuario->bloqueado_hasta);
         $this->assertNotNull($usuario->ultimo_acceso);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText('Bienvenido');
     }
 
     public function test_bloquea_al_quinto_intento(): void
@@ -217,6 +238,10 @@ class AutenticacionTest extends TestCase
 
         $this->assertSame(0, $usuario->intentos_fallidos);
         $this->assertNull($usuario->bloqueado_hasta);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText('Bienvenido');
     }
 
     public function test_rechaza_usuario_inactivo(): void

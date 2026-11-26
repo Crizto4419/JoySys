@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('usuario.activo')->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard');
-        })->name('dashboard');
+        })
+            ->middleware("can:joysys.permiso,'dashboard.ver'")
+            ->name('dashboard');
     });
 });
