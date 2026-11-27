@@ -1,4 +1,5 @@
 import './bootstrap';
+import './components';
 
 /* ==================================================
    JOYSYS — SISTEMA DE INTERACTIVIDAD

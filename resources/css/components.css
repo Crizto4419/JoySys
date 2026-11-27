@@ -1,0 +1,242 @@
+@layer components {
+
+    /* 1. MODALES */
+
+    .js-modal {
+        position: fixed;
+        inset: 0;
+        width: calc(100% - 32px);
+        max-height: calc(100dvh - 32px);
+        margin: auto;
+        padding: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        background-color: var(--js-surface);
+        color: var(--js-text);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-lg);
+        box-shadow: var(--js-shadow-lg);
+    }
+
+    .js-modal:not([open]) {
+        display: none;
+    }
+
+    .js-modal::backdrop {
+        background-color: var(--js-overlay);
+    }
+
+    .js-modal-sm {
+        max-width: 400px;
+    }
+
+    .js-modal-md {
+        max-width: 560px;
+    }
+
+    .js-modal-lg {
+        max-width: 760px;
+    }
+
+    .js-modal-xl {
+        max-width: 1000px;
+    }
+
+    .js-modal-panel {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+    }
+
+    .js-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--js-space-4);
+        padding: var(--js-space-6);
+        border-bottom: 1px solid var(--js-border);
+    }
+
+    .js-modal-body {
+        min-width: 0;
+        padding: var(--js-space-6);
+    }
+
+    .js-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: var(--js-space-2);
+        padding: var(--js-space-4) var(--js-space-6);
+        border-top: 1px solid var(--js-border);
+    }
+
+    :root:has(dialog.js-modal[open]) body {
+        overflow: hidden;
+    }
+
+    /* 2. PAGINACION */
+
+    .js-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--js-space-4);
+        padding-block: var(--js-space-4);
+    }
+
+    .js-pagination-summary {
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-sm);
+    }
+
+    .js-pagination-summary strong {
+        color: var(--js-text);
+        font-weight: 600;
+    }
+
+    .js-pagination-controls,
+    .js-pagination-pages {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--js-space-1);
+    }
+
+    .js-pagination-page {
+        display: inline-flex;
+        min-width: 34px;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        background-color: var(--js-surface);
+        color: var(--js-text);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-md);
+        font-size: var(--js-font-sm);
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+    }
+
+    a.js-pagination-page:hover {
+        background-color: var(--js-surface-hover);
+        border-color: var(--js-border-strong);
+    }
+
+    .js-pagination-page-active {
+        background-color: var(--js-primary);
+        color: var(--js-primary-text);
+        border-color: var(--js-primary);
+        font-weight: 650;
+    }
+
+    .js-pagination-ellipsis {
+        padding-inline: var(--js-space-1);
+        color: var(--js-text-muted);
+    }
+
+    /* 3. FILTROS */
+
+    .js-filters {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: var(--js-space-4);
+        padding: var(--js-space-4);
+        background-color: var(--js-surface);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-lg);
+    }
+
+    .js-filters-fields {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 480px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: var(--js-space-3);
+    }
+
+    .js-filters-fields > .js-field {
+        flex: 1 1 160px;
+        min-width: 0;
+    }
+
+    .js-filters-fields > .js-filter-search {
+        flex: 2 1 240px;
+    }
+
+    .js-filters-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--js-space-2);
+    }
+
+    .js-filters-actions .js-button {
+        min-height: 42px;
+    }
+
+    /* 4. VALIDACION DE CASILLAS */
+
+    .js-checkbox[aria-invalid="true"] {
+        outline: 1px solid var(--js-danger);
+        outline-offset: 2px;
+    }
+
+    /* 5. DISENO RESPONSIVO */
+
+    @media (max-width: 767px) {
+
+        .js-modal-header,
+        .js-modal-body,
+        .js-modal-footer {
+            padding: var(--js-space-4);
+        }
+
+        .js-pagination {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .js-pagination-controls {
+            max-width: 100%;
+        }
+
+        .js-filters-fields {
+            flex-basis: 100%;
+        }
+
+        .js-filters-actions {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 479px) {
+
+        .js-modal {
+            width: calc(100% - 24px);
+            max-height: calc(100dvh - 24px);
+        }
+
+        .js-pagination-pages {
+            display: none;
+        }
+
+        .js-pagination-controls {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .js-filters-fields > .js-field {
+            flex-basis: 100%;
+        }
+
+        .js-filters-actions > .js-button {
+            flex: 1;
+        }
+    }
+}
