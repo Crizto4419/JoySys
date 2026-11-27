@@ -26,7 +26,7 @@ return [
             'descripcion' => 'Iniciar una sesión de caja.',
             'permiso' => 'caja.abrir',
             'icono' => 'wallet',
-            'ruta' => null,
+            'ruta' => 'caja.sesion.create',
             'requiere_sucursal' => true,
         ],
 

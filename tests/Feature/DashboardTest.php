@@ -1024,7 +1024,7 @@ class DashboardTest extends TestCase
 
         $rutasEsperadasAdmin = [
             'ventas.crear' => null,
-            'caja.abrir' => null,
+            'caja.abrir' => 'caja.sesion.create',
             'caja.cerrar' => null,
             'catalogos.crear' => 'catalogos.productos.create',
             'clientes.crear' => 'clientes.create',

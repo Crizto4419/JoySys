@@ -84,7 +84,7 @@ return [
             'descripcion' => 'Control de sesiones y movimientos de caja.',
             'icono' => 'wallet',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'caja.index',
             'requiere_sucursal' => true,
         ],
 

@@ -276,3 +276,68 @@ Route::middleware(['auth', 'usuario.activo'])
             ->middleware("can:joysys.permiso,'clientes.desactivar'")
             ->name('estado');
     });
+
+
+Route::middleware([
+    'auth',
+    'usuario.activo',
+    'sucursal.activa',
+])->prefix('caja')->name('caja.')->group(function () {
+    Route::get(
+        '/',
+        [\App\Http\Controllers\Caja\CajaController::class, 'index']
+    )->middleware("can:joysys.permiso,'caja.ver'")->name('index');
+
+    Route::get(
+        '/crear',
+        [\App\Http\Controllers\Caja\CajaController::class, 'create']
+    )->middleware('can:joysys.caja.administrar')->name('create');
+
+    Route::post(
+        '/',
+        [\App\Http\Controllers\Caja\CajaController::class, 'store']
+    )->middleware('can:joysys.caja.administrar')->name('store');
+
+    Route::get(
+        '/sesiones/abrir',
+        [\App\Http\Controllers\Caja\SesionCajaController::class, 'create']
+    )->middleware("can:joysys.permiso,'caja.abrir'")->name('sesion.create');
+
+    Route::post(
+        '/sesiones',
+        [\App\Http\Controllers\Caja\SesionCajaController::class, 'store']
+    )->middleware("can:joysys.permiso,'caja.abrir'")->name('sesion.store');
+
+    Route::get(
+        '/sesiones/actual',
+        [\App\Http\Controllers\Caja\SesionCajaController::class, 'actual']
+    )->middleware("can:joysys.permiso,'caja.ver'")->name('sesion.actual');
+
+    Route::get(
+        '/{caja}',
+        [\App\Http\Controllers\Caja\CajaController::class, 'show']
+    )->whereNumber('caja')
+        ->middleware("can:joysys.permiso,'caja.ver'")
+        ->name('show');
+
+    Route::get(
+        '/{caja}/editar',
+        [\App\Http\Controllers\Caja\CajaController::class, 'edit']
+    )->whereNumber('caja')
+        ->middleware('can:joysys.caja.administrar')
+        ->name('edit');
+
+    Route::put(
+        '/{caja}',
+        [\App\Http\Controllers\Caja\CajaController::class, 'update']
+    )->whereNumber('caja')
+        ->middleware('can:joysys.caja.administrar')
+        ->name('update');
+
+    Route::patch(
+        '/{caja}/estado',
+        [\App\Http\Controllers\Caja\CajaController::class, 'cambiarEstado']
+    )->whereNumber('caja')
+        ->middleware('can:joysys.caja.administrar')
+        ->name('estado');
+});

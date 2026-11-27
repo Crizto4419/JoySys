@@ -35,5 +35,28 @@ class AppServiceProvider extends ServiceProvider
                     ->tienePermiso($usuario, $clave);
             }
         );
+
+        Gate::define(
+            'joysys.caja.administrar',
+            function (User $usuario): bool {
+                if (! app(AutorizacionService::class)
+                    ->tienePermiso($usuario, 'caja.ver')) {
+                    return false;
+                }
+
+                $administrador = User::query()
+                    ->whereKey($usuario->getKey())
+                    ->whereHas('role', function ($consulta) {
+                        $consulta
+                            ->where('roles.slug', 'administrador')
+                            ->where('roles.estado', 'activo');
+                    })
+                    ->exists();
+
+                return $administrador
+                    && app(\App\Services\Auth\ContextoSucursalService::class)
+                        ->obtenerSucursalId($usuario) !== null;
+            }
+        );
     }
 }
