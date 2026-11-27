@@ -14,7 +14,7 @@ return [
             'descripcion' => 'Consulta y gestión de catálogos generales.',
             'icono' => 'package',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'catalogos.index',
             'requiere_sucursal' => false,
         ],
 
