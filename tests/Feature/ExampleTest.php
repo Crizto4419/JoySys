@@ -2,18 +2,38 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_inicio_redirige_invitados_al_login(): void
     {
-        $response = $this->get('/');
+        $this->get('/')
+            ->assertRedirect(route('login'));
+    }
 
-        $response->assertStatus(200);
+    public function test_pagina_de_login_esta_disponible(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('JoySys');
+    }
+
+    public function test_dashboard_requiere_autenticacion(): void
+    {
+        $this->get(route('dashboard'))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_logout_no_admite_solicitudes_get(): void
+    {
+        $this->get('/logout')
+            ->assertStatus(405);
+    }
+
+    public function test_ruta_de_salud_esta_disponible(): void
+    {
+        $this->get('/up')
+            ->assertOk();
     }
 }

@@ -5,64 +5,11 @@ namespace Tests\Feature;
 use App\Models\Permiso;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AutenticacionTest extends TestCase
 {
     private const PASSWORD = 'JoySys-Test-Only-2026!';
-
-    private bool $transaccionIniciada = false;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->assertSame('testing', app()->environment());
-
-        $this->assertSame(
-            'mysql',
-            config('database.default')
-        );
-
-        $this->assertSame(
-            'joysys_testing',
-            config('database.connections.mysql.database')
-        );
-
-        $this->assertSame(
-            'joysys_test_user',
-            config('database.connections.mysql.username')
-        );
-
-        $this->assertSame(
-            'joysys_testing',
-            DB::selectOne('SELECT DATABASE() AS nombre')->nombre
-        );
-
-        $this->assertSame(
-            'joysys_test_user@localhost',
-            DB::selectOne('SELECT CURRENT_USER() AS usuario')->usuario
-        );
-
-        $this->assertSame('array', config('cache.default'));
-        $this->assertSame('array', config('session.driver'));
-
-        DB::beginTransaction();
-
-        $this->transaccionIniciada = true;
-    }
-
-    protected function tearDown(): void
-    {
-        try {
-            if ($this->transaccionIniciada) {
-                DB::rollBack();
-            }
-        } finally {
-            parent::tearDown();
-        }
-    }
 
     private function crearUsuario(): User
     {
