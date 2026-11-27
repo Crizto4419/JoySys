@@ -7,19 +7,12 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* ==================================================
-   JOYSYS — SISTEMA DE DISEÑO
-   Versión 1.0
-   ================================================== */
-
 @theme {
     --font-sans: 'Segoe UI', system-ui, -apple-system,
         BlinkMacSystemFont, sans-serif;
 }
 
-/* ==================================================
-   1. VARIABLES GENERALES
-   ================================================== */
+/* 1. VARIABLES GENERALES */
 
 :root {
     --js-font-family: 'Segoe UI', system-ui, -apple-system,
@@ -51,6 +44,7 @@
     --js-header-height: 64px;
     --js-sidebar-width: 256px;
     --js-sidebar-collapsed-width: 72px;
+    --js-sidebar-current-width: var(--js-sidebar-width);
 
     --js-transition-fast: 150ms ease;
     --js-transition-normal: 220ms ease;
@@ -62,9 +56,7 @@
     --js-z-toast: 70;
 }
 
-/* ==================================================
-   2. TEMA CLARO
-   ================================================== */
+/* 2. TEMA CLARO */
 
 :root,
 :root[data-theme="light"] {
@@ -102,7 +94,6 @@
 
     --js-input-bg: #ffffff;
     --js-focus: #947035;
-
     --js-overlay: rgb(0 0 0 / 45%);
 
     --js-shadow-sm: 0 1px 3px rgb(0 0 0 / 5%);
@@ -110,9 +101,7 @@
     --js-shadow-lg: 0 12px 32px rgb(0 0 0 / 12%);
 }
 
-/* ==================================================
-   3. TEMA OSCURO
-   ================================================== */
+/* 3. TEMA OSCURO */
 
 :root[data-theme="dark"] {
     color-scheme: dark;
@@ -149,7 +138,6 @@
 
     --js-input-bg: #202024;
     --js-focus: #d4b477;
-
     --js-overlay: rgb(0 0 0 / 65%);
 
     --js-shadow-sm: 0 1px 3px rgb(0 0 0 / 15%);
@@ -157,9 +145,7 @@
     --js-shadow-lg: 0 12px 32px rgb(0 0 0 / 35%);
 }
 
-/* ==================================================
-   4. ESTILOS BASE
-   ================================================== */
+/* 4. ESTILOS BASE */
 
 @layer base {
     html {
@@ -221,11 +207,10 @@
     }
 }
 
-/* ==================================================
-   5. TIPOGRAFÍA
-   ================================================== */
-
 @layer components {
+
+    /* 5. TIPOGRAFÍA */
+
     .js-page-title {
         margin: 0;
         color: var(--js-text);
@@ -283,9 +268,7 @@
         font-variant-numeric: tabular-nums;
     }
 
-    /* ==============================================
-       6. TARJETAS Y SUPERFICIES
-       ============================================== */
+    /* 6. TARJETAS */
 
     .js-card {
         min-width: 0;
@@ -326,9 +309,7 @@
         border: 0;
     }
 
-    /* ==============================================
-       7. BOTONES
-       ============================================== */
+    /* 7. BOTONES */
 
     .js-button {
         display: inline-flex;
@@ -410,9 +391,7 @@
         cursor: not-allowed;
     }
 
-    /* ==============================================
-       8. FORMULARIOS
-       ============================================== */
+    /* 8. FORMULARIOS */
 
     .js-field {
         display: flex;
@@ -492,9 +471,7 @@
         accent-color: var(--js-primary);
     }
 
-    /* ==============================================
-       9. INDICADORES DE ESTADO
-       ============================================== */
+    /* 9. INDICADORES */
 
     .js-badge {
         display: inline-flex;
@@ -534,9 +511,7 @@
         color: var(--js-info);
     }
 
-    /* ==============================================
-       10. ALERTAS
-       ============================================== */
+    /* 10. ALERTAS */
 
     .js-alert {
         display: flex;
@@ -573,9 +548,7 @@
         border-color: var(--js-info);
     }
 
-    /* ==============================================
-       11. TABLAS
-       ============================================== */
+    /* 11. TABLAS */
 
     .js-table-wrapper {
         width: 100%;
@@ -620,9 +593,7 @@
         background-color: var(--js-surface-hover);
     }
 
-    /* ==============================================
-       12. ESTADOS VACÍOS
-       ============================================== */
+    /* 12. ESTADOS VACÍOS */
 
     .js-empty-state {
         display: flex;
@@ -642,9 +613,7 @@
         font-weight: 600;
     }
 
-    /* ==============================================
-       13. CUADRÍCULAS Y CONTENEDORES
-       ============================================== */
+    /* 13. CONTENEDORES */
 
     .js-container {
         width: 100%;
@@ -683,9 +652,7 @@
         gap: var(--js-space-2);
     }
 
-    /* ==============================================
-       14. IDENTIDAD VISUAL
-       ============================================== */
+    /* 14. IDENTIDAD VISUAL */
 
     .js-brand {
         display: inline-flex;
@@ -695,25 +662,342 @@
         font-size: 24px;
         font-weight: 700;
         letter-spacing: -0.6px;
+        white-space: nowrap;
     }
 
-    /* ==============================================
-       15. SELECTOR DE TEMA
-       ============================================== */
+    .js-icon {
+        flex-shrink: 0;
+    }
 
-    :root[data-theme="light"] [data-theme-icon="light"],
+    /* 15. SELECTOR DE TEMA */
+
+    [data-theme-icon] {
+        display: none;
+    }
+
+    :root:not([data-theme="dark"]) [data-theme-icon="light"],
     :root[data-theme="dark"] [data-theme-icon="dark"] {
         display: inline-flex;
     }
 
-    :root[data-theme="light"] [data-theme-icon="dark"],
-    :root[data-theme="dark"] [data-theme-icon="light"] {
+    /* 16. LAYOUT PRINCIPAL */
+
+    .js-app-shell {
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .js-app-workspace {
+        display: flex;
+        min-width: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        flex-direction: column;
+        margin-left: var(--js-sidebar-current-width);
+        transition: margin-left var(--js-transition-normal);
+    }
+
+    .js-app-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .js-app-footer {
+        padding: 16px 24px;
+        color: var(--js-text-muted);
+        font-size: var(--js-font-xs);
+        text-align: center;
+    }
+
+    .js-skip-link {
+        position: fixed;
+        top: -100px;
+        left: 12px;
+        z-index: 100;
+        padding: 12px 16px;
+        background-color: var(--js-surface);
+        color: var(--js-text);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-md);
+    }
+
+    .js-skip-link:focus {
+        top: 12px;
+    }
+
+    /* 17. MENÚ LATERAL */
+
+    .js-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: var(--js-z-sidebar);
+        display: flex;
+        width: var(--js-sidebar-current-width);
+        flex-direction: column;
+        overflow: hidden;
+        background-color: var(--js-surface);
+        border-right: 1px solid var(--js-border);
+        transition:
+            width var(--js-transition-normal),
+            transform var(--js-transition-normal);
+    }
+
+    .js-sidebar-brand {
+        display: flex;
+        min-height: var(--js-header-height);
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--js-border);
+    }
+
+    .js-sidebar-nav {
+        flex: 1;
+        min-height: 0;
+        padding: 16px 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+    }
+
+    .js-nav-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 20px;
+    }
+
+    .js-nav-group-title {
+        padding: 4px 10px 8px;
+        color: var(--js-text-muted);
+        font-size: 10px;
+        font-weight: 650;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .js-nav-item {
+        display: flex;
+        min-height: 42px;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: var(--js-radius-md);
+        color: var(--js-text);
+        font-size: var(--js-font-sm);
+        font-weight: 500;
+        transition:
+            background-color var(--js-transition-fast),
+            color var(--js-transition-fast);
+    }
+
+    .js-nav-item:hover:not(.js-nav-item-disabled) {
+        background-color: var(--js-surface-hover);
+    }
+
+    .js-nav-item-active {
+        background-color: var(--js-primary-soft);
+        color: var(--js-primary-foreground);
+        font-weight: 650;
+    }
+
+    .js-nav-item-disabled {
+        color: var(--js-text-muted);
+        cursor: not-allowed;
+    }
+
+    .js-nav-label {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .js-nav-status {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--js-text-muted);
+    }
+
+    .js-sidebar-footer {
+        min-height: 48px;
+        padding: 16px;
+        border-top: 1px solid var(--js-border);
+        color: var(--js-text-muted);
+        font-size: var(--js-font-xs);
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .js-sidebar-close,
+    .js-mobile-menu-icon {
         display: none;
     }
 
-    /* ==============================================
-       16. DISEÑO RESPONSIVO
-       ============================================== */
+    .js-sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: var(--js-z-overlay);
+        background-color: var(--js-overlay);
+    }
+
+    /* 18. ENCABEZADO */
+
+    .js-header {
+        position: sticky;
+        top: 0;
+        z-index: var(--js-z-header);
+        display: flex;
+        min-height: var(--js-header-height);
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 24px;
+        background-color: var(--js-surface);
+        border-bottom: 1px solid var(--js-border);
+    }
+
+    .js-header-left,
+    .js-header-right,
+    .js-header-branch,
+    .js-header-user {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .js-header-right {
+        flex-shrink: 0;
+    }
+
+    .js-header-branch-details,
+    .js-header-user-details {
+        min-width: 0;
+    }
+
+    .js-header-primary-text {
+        max-width: 220px;
+        overflow: hidden;
+        color: var(--js-text);
+        font-size: var(--js-font-sm);
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .js-header-secondary-text {
+        color: var(--js-text-muted);
+        font-size: var(--js-font-xs);
+    }
+
+    .js-header-divider {
+        width: 1px;
+        height: 32px;
+        background-color: var(--js-border);
+    }
+
+    .js-avatar {
+        display: flex;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--js-primary-soft);
+        color: var(--js-primary-foreground);
+        border-radius: var(--js-radius-full);
+        font-weight: 650;
+    }
+
+    /* 19. DASHBOARD PROVISIONAL */
+
+    .js-dashboard-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .js-dashboard-label {
+        margin-bottom: 8px;
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-sm);
+    }
+
+    .js-dashboard-value {
+        font-size: var(--js-font-lg);
+        font-weight: 650;
+        overflow-wrap: anywhere;
+    }
+
+    .js-module-card {
+        display: flex;
+        min-height: 150px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .js-module-card .module-title {
+        color: var(--js-primary-foreground);
+        font-size: var(--js-font-lg);
+        font-weight: 650;
+    }
+
+    .js-module-description {
+        flex: 1;
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-sm);
+        line-height: 1.6;
+    }
+
+    /* 20. MENÚ CONTRAÍDO */
+
+    @media (min-width: 768px) {
+        :root[data-sidebar-collapsed="true"] {
+            --js-sidebar-current-width:
+                var(--js-sidebar-collapsed-width);
+        }
+
+        :root[data-sidebar-collapsed="true"]
+        .js-sidebar-brand {
+            justify-content: center;
+            padding: 0;
+        }
+
+        :root[data-sidebar-collapsed="true"]
+        .js-brand-label,
+
+        :root[data-sidebar-collapsed="true"]
+        .js-nav-label,
+
+        :root[data-sidebar-collapsed="true"]
+        .js-nav-status,
+
+        :root[data-sidebar-collapsed="true"]
+        .js-nav-group-title,
+
+        :root[data-sidebar-collapsed="true"]
+        .js-sidebar-version {
+            display: none;
+        }
+
+        :root[data-sidebar-collapsed="true"]
+        .js-sidebar-nav {
+            padding-inline: 10px;
+        }
+
+        :root[data-sidebar-collapsed="true"]
+        .js-nav-item {
+            justify-content: center;
+            padding-inline: 0;
+        }
+    }
+
+    /* 21. DISEÑO RESPONSIVO */
 
     @media (max-width: 1199px) {
         .js-grid-4 {
@@ -721,11 +1005,69 @@
         }
     }
 
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .js-header-user-details {
+            display: none;
+        }
+    }
+
     @media (max-width: 767px) {
-        .js-container {
-            padding: var(--js-space-4);
+        .js-app-workspace {
+            margin-left: 0;
         }
 
+        .js-sidebar {
+            width: min(280px, 85vw);
+            z-index: var(--js-z-modal);
+            transform: translateX(-100%);
+            visibility: hidden;
+        }
+
+        :root[data-sidebar-open="true"] .js-sidebar {
+            transform: translateX(0);
+            visibility: visible;
+        }
+
+        :root[data-sidebar-open="true"] body {
+            overflow: hidden;
+        }
+
+        .js-sidebar-close {
+            display: inline-flex;
+        }
+
+        .js-mobile-menu-icon {
+            display: block;
+        }
+
+        .js-desktop-menu-icon {
+            display: none;
+        }
+
+        .js-header {
+            gap: 8px;
+            padding-inline: 12px;
+        }
+
+        .js-header-left,
+        .js-header-right {
+            gap: 6px;
+        }
+
+        .js-header-user-details,
+        .js-header-divider {
+            display: none;
+        }
+
+        .js-header-branch {
+            gap: 6px;
+        }
+
+        .js-header-primary-text {
+            max-width: 160px;
+        }
+
+        .js-container,
         .js-card {
             padding: var(--js-space-4);
         }
@@ -746,12 +1088,18 @@
             grid-template-columns: minmax(0, 1fr);
         }
 
-        .js-container {
+        .js-container,
+        .js-card {
             padding: var(--js-space-3);
         }
 
-        .js-card {
-            padding: var(--js-space-3);
+        .js-header-branch > .js-icon,
+        .js-header-user {
+            display: none;
+        }
+
+        .js-header-primary-text {
+            max-width: 110px;
         }
 
         .js-table th,
@@ -761,9 +1109,7 @@
     }
 }
 
-/* ==================================================
-   17. ACCESIBILIDAD
-   ================================================== */
+/* 22. ACCESIBILIDAD */
 
 @media (prefers-reduced-motion: reduce) {
     *,
