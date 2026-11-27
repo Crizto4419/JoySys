@@ -1027,7 +1027,7 @@ class DashboardTest extends TestCase
             'caja.abrir' => null,
             'caja.cerrar' => null,
             'catalogos.crear' => 'catalogos.productos.create',
-            'clientes.crear' => null,
+            'clientes.crear' => 'clientes.create',
             'incidencias.reportar' => 'incidencias.create',
         ];
 

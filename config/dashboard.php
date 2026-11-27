@@ -53,7 +53,7 @@ return [
             'descripcion' => 'Agregar un cliente.',
             'permiso' => 'clientes.crear',
             'icono' => 'contact',
-            'ruta' => null,
+            'ruta' => 'clientes.create',
             'requiere_sucursal' => false,
         ],
 

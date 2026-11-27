@@ -54,7 +54,7 @@ return [
             'descripcion' => 'Registro y consulta de clientes.',
             'icono' => 'contact',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'clientes.index',
             'requiere_sucursal' => false,
         ],
 

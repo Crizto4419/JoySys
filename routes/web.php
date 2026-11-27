@@ -218,3 +218,61 @@ Route::middleware([
         ->middleware("can:joysys.permiso,'incidencias.resolver'")
         ->name('estado');
 });
+
+Route::middleware(['auth', 'usuario.activo'])
+    ->prefix('clientes')
+    ->name('clientes.')
+    ->group(function () {
+        Route::get(
+            '/',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'index']
+        )
+            ->middleware("can:joysys.permiso,'clientes.ver'")
+            ->name('index');
+
+        Route::get(
+            '/crear',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'create']
+        )
+            ->middleware("can:joysys.permiso,'clientes.crear'")
+            ->name('create');
+
+        Route::post(
+            '/',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'store']
+        )
+            ->middleware("can:joysys.permiso,'clientes.crear'")
+            ->name('store');
+
+        Route::get(
+            '/{cliente}',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'show']
+        )
+            ->whereNumber('cliente')
+            ->middleware("can:joysys.permiso,'clientes.ver'")
+            ->name('show');
+
+        Route::get(
+            '/{cliente}/editar',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'edit']
+        )
+            ->whereNumber('cliente')
+            ->middleware("can:joysys.permiso,'clientes.editar'")
+            ->name('edit');
+
+        Route::put(
+            '/{cliente}',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'update']
+        )
+            ->whereNumber('cliente')
+            ->middleware("can:joysys.permiso,'clientes.editar'")
+            ->name('update');
+
+        Route::patch(
+            '/{cliente}/estado',
+            [\App\Http\Controllers\Clientes\ClienteController::class, 'cambiarEstado']
+        )
+            ->whereNumber('cliente')
+            ->middleware("can:joysys.permiso,'clientes.desactivar'")
+            ->name('estado');
+    });
