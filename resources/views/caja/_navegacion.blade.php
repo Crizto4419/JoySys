@@ -21,4 +21,11 @@
             Abrir caja
         </x-ui.button>
     @endcan
+
+    <x-ui.button
+        :variant="request()->routeIs('caja.sesion.historial', 'caja.sesion.detalle') ? 'primary' : 'secondary'"
+        :href="route('caja.sesion.historial')"
+    >
+        Historial de sesiones
+    </x-ui.button>
 </div>

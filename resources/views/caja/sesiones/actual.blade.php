@@ -73,6 +73,9 @@
                 </dl>
             </x-ui.card>
 
+            @include('caja.sesiones._operaciones')
+            @include('caja.sesiones._movimientos')
+
             <x-ui.alert variant="info">
                 Tu sesión de caja permanece abierta aunque cierres
                 tu sesión de acceso a JoySys.

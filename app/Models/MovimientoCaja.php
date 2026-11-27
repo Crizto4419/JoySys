@@ -84,4 +84,20 @@ class MovimientoCaja extends Model
             'id'
         );
     }
+
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $movimiento): void {
+            throw new \LogicException(
+                'Los movimientos de caja son inmutables.'
+            );
+        });
+
+        static::deleting(function (self $movimiento): void {
+            throw new \LogicException(
+                'Los movimientos de caja no pueden eliminarse.'
+            );
+        });
+    }
 }

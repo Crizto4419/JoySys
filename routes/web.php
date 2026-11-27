@@ -313,6 +313,47 @@ Route::middleware([
         [\App\Http\Controllers\Caja\SesionCajaController::class, 'actual']
     )->middleware("can:joysys.permiso,'caja.ver'")->name('sesion.actual');
 
+
+    Route::post(
+        '/movimientos/gasto',
+        [\App\Http\Controllers\Caja\OperacionCajaController::class, 'gasto']
+    )->middleware("can:joysys.permiso,'caja.registrar_gasto'")
+        ->name('movimientos.gasto');
+
+    Route::post(
+        '/movimientos/retiro',
+        [\App\Http\Controllers\Caja\OperacionCajaController::class, 'retiro']
+    )->middleware("can:joysys.permiso,'caja.registrar_retiro'")
+        ->name('movimientos.retiro');
+
+    Route::post(
+        '/movimientos/{movimiento}/compensacion',
+        [\App\Http\Controllers\Caja\OperacionCajaController::class, 'compensacion']
+    )->whereNumber('movimiento')
+        ->middleware("can:joysys.permiso,'caja.autorizar_compensacion'")
+        ->name('movimientos.compensacion');
+
+    Route::post(
+        '/sesiones/{sesion}/cerrar',
+        [\App\Http\Controllers\Caja\OperacionCajaController::class, 'cerrar']
+    )->whereNumber('sesion')
+        ->middleware("can:joysys.permiso,'caja.cerrar'")
+        ->name('sesion.cerrar');
+
+
+    Route::get(
+        '/sesiones/historial',
+        [\App\Http\Controllers\Caja\SesionCajaController::class, 'historial']
+    )->middleware("can:joysys.permiso,'caja.ver'")
+        ->name('sesion.historial');
+
+    Route::get(
+        '/sesiones/{sesion}',
+        [\App\Http\Controllers\Caja\SesionCajaController::class, 'detalle']
+    )->whereNumber('sesion')
+        ->middleware("can:joysys.permiso,'caja.ver'")
+        ->name('sesion.detalle');
+
     Route::get(
         '/{caja}',
         [\App\Http\Controllers\Caja\CajaController::class, 'show']

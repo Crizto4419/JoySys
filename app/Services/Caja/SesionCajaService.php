@@ -173,4 +173,205 @@ class SesionCajaService
             throw $exception;
         }
     }
+
+
+    public static function reglasCierre(): array
+    {
+        return [
+            'efectivo_contado' => ['required'],
+        ];
+    }
+
+    public static function validarDatosCierre(
+        array $datos
+    ): array {
+        foreach (array_keys($datos) as $campo) {
+            if ($campo !== 'efectivo_contado') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    $campo => 'Este campo no puede proporcionarse.',
+                ]);
+            }
+        }
+
+        return [
+            'efectivo_contado' =>
+                MovimientoCajaService::normalizarMonto(
+                    $datos['efectivo_contado'] ?? null,
+                    true,
+                    'efectivo_contado'
+                ),
+        ];
+    }
+
+    public function cerrar(
+        array $datos,
+        \App\Models\User $usuario
+    ): \App\Models\SesionCaja {
+        $permiso = 'caja.cerrar';
+
+        $cajas = app(CajaService::class);
+
+        $sucursalId = $cajas->autorizar(
+            $usuario,
+            $permiso
+        );
+
+        $datos = self::validarDatosCierre($datos);
+
+        return $cajas->ejecutar(
+            $usuario,
+            $sucursalId,
+            function () use (
+                $usuario,
+                $sucursalId,
+                $datos
+            ) {
+                $sesion = \App\Models\SesionCaja::query()
+                    ->where('usuario_id', $usuario->getKey())
+                    ->where('sucursal_id', $sucursalId)
+                    ->where('estado', 'abierta')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($sesion === null) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'sesion_caja' => 'No tienes una sesion abierta para cerrar.',
+                    ]);
+                }
+
+                \App\Models\Caja::query()
+                    ->where('sucursal_id', $sucursalId)
+                    ->lockForUpdate()
+                    ->findOrFail($sesion->caja_id);
+
+                return $this->finalizarCierre(
+                    $sesion,
+                    $datos['efectivo_contado'],
+                    $usuario
+                );
+            },
+            false,
+            $permiso
+        );
+    }
+
+    public function cerrarIdentificada(
+        int $sesionId,
+        array $datos,
+        User $usuario
+    ): SesionCaja {
+        $permiso = 'caja.cerrar';
+
+        $sucursalId = $this->cajas->autorizar(
+            $usuario,
+            $permiso
+        );
+
+        $datos = self::validarDatosCierre($datos);
+
+        return $this->cajas->ejecutar(
+            $usuario,
+            $sucursalId,
+            function () use (
+                $sesionId,
+                $datos,
+                $usuario,
+                $sucursalId
+            ) {
+                $sesion = SesionCaja::query()
+                    ->where('sucursal_id', $sucursalId)
+                    ->where('usuario_id', $usuario->getKey())
+                    ->lockForUpdate()
+                    ->findOrFail($sesionId);
+
+                $contado = $datos['efectivo_contado'];
+
+                if ($sesion->estado === 'cerrada') {
+                    if (
+                        bccomp(
+                            $sesion->efectivo_contado,
+                            $contado,
+                            4
+                        ) !== 0
+                    ) {
+                        throw ValidationException::withMessages([
+                            'efectivo_contado' =>
+                                'La sesion ya fue cerrada con otro importe.',
+                        ]);
+                    }
+
+                    return $sesion;
+                }
+
+                if ($sesion->estado !== 'abierta') {
+                    throw ValidationException::withMessages([
+                        'sesion_caja' =>
+                            'La sesion no admite operaciones de cierre.',
+                    ]);
+                }
+
+                Caja::query()
+                    ->where('sucursal_id', $sucursalId)
+                    ->lockForUpdate()
+                    ->findOrFail($sesion->caja_id);
+
+                return $this->finalizarCierre(
+                    $sesion,
+                    $datos['efectivo_contado'],
+                    $usuario
+                );
+            },
+            false,
+            $permiso
+        );
+    }
+
+
+    private function finalizarCierre(
+        \App\Models\SesionCaja $sesion,
+        string $contado,
+        \App\Models\User $usuario
+    ): \App\Models\SesionCaja {
+        if ($sesion->estado !== 'abierta') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'sesion_caja' => 'La sesion no esta abierta.',
+            ]);
+        }
+
+        $movimientos = $sesion->movimientos()
+            ->with('movimientoOriginal')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        $esperado = MovimientoCajaService::calcularSaldo(
+            $sesion->fondo_inicial,
+            $movimientos
+        );
+
+        $diferencia = MovimientoCajaService::calcularDiferencia(
+            $contado,
+            $esperado
+        );
+
+        $fechaCierre = now();
+
+        if ($fechaCierre->lt($sesion->fecha_apertura)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'fecha_cierre' => 'La fecha de cierre es invalida.',
+            ]);
+        }
+
+        $sesion->forceFill([
+            'estado' => 'cerrada',
+            'cerrada_por' => $usuario->getKey(),
+            'saldo_esperado' => $esperado,
+            'efectivo_contado' => $contado,
+            'diferencia' => $diferencia,
+            'fecha_cierre' => $fechaCierre,
+        ])->save();
+
+        return $sesion->refresh();
+    }
+
 }

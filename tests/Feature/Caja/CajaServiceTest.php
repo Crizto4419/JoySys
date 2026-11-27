@@ -1122,7 +1122,7 @@ class CajaServiceTest extends TestCase
                 'caja.'
             ));
 
-        $this->assertCount(10, $rutas);
+        $this->assertCount(16, $rutas);
 
         foreach ($rutas as $ruta) {
             $this->assertNotContains('DELETE', $ruta->methods());

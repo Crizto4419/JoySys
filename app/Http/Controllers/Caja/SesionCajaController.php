@@ -53,6 +53,87 @@ class SesionCajaController extends Controller
             $request->user()
         );
 
-        return view('caja.sesiones.actual', compact('sesion'));
+        $movimientos = $sesion === null
+            ? null
+            : app(\App\Services\Caja\MovimientoCajaService::class)
+                ->listarMovimientos(
+                    $sesion,
+                    $request->user(),
+                    $request->only(['tipo_movimiento', 'page'])
+                );
+
+        return view(
+            'caja.sesiones.actual',
+            compact('sesion', 'movimientos')
+        );
     }
+
+
+    public function historial(Request $request): View
+    {
+        $sucursalId = $this->cajas->autorizar(
+            $request->user(),
+            'caja.ver'
+        );
+
+        $filtros = $request->validate([
+            'estado' => [
+                'nullable',
+                \Illuminate\Validation\Rule::in([
+                    'abierta', 'cerrada',
+                ]),
+            ],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $consulta = \App\Models\SesionCaja::query()
+            ->where('sucursal_id', $sucursalId)
+            ->where('usuario_id', $request->user()->getKey())
+            ->with('caja');
+
+        if (!empty($filtros['estado'])) {
+            $consulta->where('estado', $filtros['estado']);
+        }
+
+        $sesiones = $consulta
+            ->orderByDesc('fecha_apertura')
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view(
+            'caja.sesiones.historial',
+            compact('sesiones')
+        );
+    }
+
+    public function detalle(
+        Request $request,
+        int $sesion
+    ): View {
+        $sucursalId = $this->cajas->autorizar(
+            $request->user(),
+            'caja.ver'
+        );
+
+        $sesion = \App\Models\SesionCaja::query()
+            ->where('sucursal_id', $sucursalId)
+            ->where('usuario_id', $request->user()->getKey())
+            ->with(['caja', 'usuario', 'cerradaPor'])
+            ->findOrFail($sesion);
+
+        $movimientos = app(
+            \App\Services\Caja\MovimientoCajaService::class
+        )->listarMovimientos(
+            $sesion,
+            $request->user(),
+            $request->only(['tipo_movimiento', 'page'])
+        );
+
+        return view(
+            'caja.sesiones.detalle',
+            compact('sesion', 'movimientos')
+        );
+    }
+
 }
