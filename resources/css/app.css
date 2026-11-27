@@ -5,7 +5,773 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ==================================================
+   JOYSYS — SISTEMA DE DISEÑO
+   Versión 1.0
+   ================================================== */
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Segoe UI', system-ui, -apple-system,
+        BlinkMacSystemFont, sans-serif;
+}
+
+/* ==================================================
+   1. VARIABLES GENERALES
+   ================================================== */
+
+:root {
+    --js-font-family: 'Segoe UI', system-ui, -apple-system,
+        BlinkMacSystemFont, sans-serif;
+
+    --js-font-xs: 12px;
+    --js-font-sm: 13px;
+    --js-font-base: 14px;
+    --js-font-lg: 16px;
+    --js-font-xl: 18px;
+    --js-font-title: 26px;
+
+    --js-space-1: 4px;
+    --js-space-2: 8px;
+    --js-space-3: 12px;
+    --js-space-4: 16px;
+    --js-space-5: 20px;
+    --js-space-6: 24px;
+    --js-space-8: 32px;
+    --js-space-10: 40px;
+    --js-space-12: 48px;
+
+    --js-radius-sm: 6px;
+    --js-radius-md: 8px;
+    --js-radius-lg: 12px;
+    --js-radius-xl: 16px;
+    --js-radius-full: 9999px;
+
+    --js-header-height: 64px;
+    --js-sidebar-width: 256px;
+    --js-sidebar-collapsed-width: 72px;
+
+    --js-transition-fast: 150ms ease;
+    --js-transition-normal: 220ms ease;
+
+    --js-z-sidebar: 40;
+    --js-z-header: 30;
+    --js-z-overlay: 50;
+    --js-z-modal: 60;
+    --js-z-toast: 70;
+}
+
+/* ==================================================
+   2. TEMA CLARO
+   ================================================== */
+
+:root,
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --js-bg: #f5f5f7;
+    --js-surface: #ffffff;
+    --js-surface-secondary: #fafafa;
+    --js-surface-hover: #f0f0f3;
+
+    --js-text: #18181b;
+    --js-text-secondary: #71717a;
+    --js-text-muted: #71717a;
+
+    --js-border: #e4e4e7;
+    --js-border-strong: #d4d4d8;
+
+    --js-primary: #947035;
+    --js-primary-hover: #795a29;
+    --js-primary-soft: #f3ebdd;
+    --js-primary-text: #ffffff;
+    --js-primary-foreground: #795a29;
+
+    --js-success: #15803d;
+    --js-success-soft: #dcfce7;
+
+    --js-warning: #92400e;
+    --js-warning-soft: #fef3c7;
+
+    --js-danger: #b91c1c;
+    --js-danger-soft: #fee2e2;
+
+    --js-info: #1d4ed8;
+    --js-info-soft: #dbeafe;
+
+    --js-input-bg: #ffffff;
+    --js-focus: #947035;
+
+    --js-overlay: rgb(0 0 0 / 45%);
+
+    --js-shadow-sm: 0 1px 3px rgb(0 0 0 / 5%);
+    --js-shadow-md: 0 4px 16px rgb(0 0 0 / 8%);
+    --js-shadow-lg: 0 12px 32px rgb(0 0 0 / 12%);
+}
+
+/* ==================================================
+   3. TEMA OSCURO
+   ================================================== */
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --js-bg: #101012;
+    --js-surface: #19191c;
+    --js-surface-secondary: #202024;
+    --js-surface-hover: #27272b;
+
+    --js-text: #f4f4f5;
+    --js-text-secondary: #a1a1aa;
+    --js-text-muted: #a1a1aa;
+
+    --js-border: #303034;
+    --js-border-strong: #45454b;
+
+    --js-primary: #d4b477;
+    --js-primary-hover: #e2c58e;
+    --js-primary-soft: #30291e;
+    --js-primary-text: #18181b;
+    --js-primary-foreground: #d4b477;
+
+    --js-success: #4ade80;
+    --js-success-soft: #163322;
+
+    --js-warning: #fbbf24;
+    --js-warning-soft: #382b16;
+
+    --js-danger: #f87171;
+    --js-danger-soft: #3b2024;
+
+    --js-info: #60a5fa;
+    --js-info-soft: #192d45;
+
+    --js-input-bg: #202024;
+    --js-focus: #d4b477;
+
+    --js-overlay: rgb(0 0 0 / 65%);
+
+    --js-shadow-sm: 0 1px 3px rgb(0 0 0 / 15%);
+    --js-shadow-md: 0 4px 16px rgb(0 0 0 / 25%);
+    --js-shadow-lg: 0 12px 32px rgb(0 0 0 / 35%);
+}
+
+/* ==================================================
+   4. ESTILOS BASE
+   ================================================== */
+
+@layer base {
+    html {
+        min-height: 100%;
+        font-family: var(--js-font-family);
+        font-size: var(--js-font-base);
+        background-color: var(--js-bg);
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        background-color: var(--js-bg);
+        color: var(--js-text);
+        font-family: var(--js-font-family);
+        font-size: var(--js-font-base);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font: inherit;
+    }
+
+    button:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    img,
+    svg {
+        vertical-align: middle;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--js-focus);
+        outline-offset: 3px;
+    }
+
+    ::selection {
+        background-color: var(--js-primary-soft);
+        color: var(--js-text);
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+}
+
+/* ==================================================
+   5. TIPOGRAFÍA
+   ================================================== */
+
+@layer components {
+    .js-page-title {
+        margin: 0;
+        color: var(--js-text);
+        font-size: var(--js-font-title);
+        font-weight: 650;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+    }
+
+    .js-section-title {
+        margin: 0;
+        color: var(--js-text);
+        font-size: var(--js-font-xl);
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .js-subtitle {
+        margin: 0;
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-base);
+        line-height: 1.6;
+    }
+
+    .js-text-small {
+        font-size: var(--js-font-xs);
+        line-height: 1.5;
+    }
+
+    .js-text-muted {
+        color: var(--js-text-muted);
+    }
+
+    .js-text-primary {
+        color: var(--js-primary-foreground);
+    }
+
+    .js-text-success {
+        color: var(--js-success);
+    }
+
+    .js-text-warning {
+        color: var(--js-warning);
+    }
+
+    .js-text-danger {
+        color: var(--js-danger);
+    }
+
+    .js-text-info {
+        color: var(--js-info);
+    }
+
+    .js-text-numeric {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* ==============================================
+       6. TARJETAS Y SUPERFICIES
+       ============================================== */
+
+    .js-card {
+        min-width: 0;
+        padding: var(--js-space-6);
+        background-color: var(--js-surface);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-lg);
+        box-shadow: var(--js-shadow-sm);
+    }
+
+    .js-card-title {
+        margin: 0;
+        color: var(--js-text);
+        font-size: var(--js-font-lg);
+        font-weight: 600;
+    }
+
+    .js-card-description {
+        margin-top: var(--js-space-2);
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-sm);
+    }
+
+    .js-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--js-space-3);
+        margin-bottom: var(--js-space-4);
+    }
+
+    .js-divider {
+        width: 100%;
+        height: 1px;
+        margin: var(--js-space-4) 0;
+        background-color: var(--js-border);
+        border: 0;
+    }
+
+    /* ==============================================
+       7. BOTONES
+       ============================================== */
+
+    .js-button {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: var(--js-space-2);
+        padding: 9px 16px;
+        border: 1px solid transparent;
+        border-radius: var(--js-radius-md);
+        font-size: var(--js-font-base);
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: center;
+        transition:
+            background-color var(--js-transition-fast),
+            border-color var(--js-transition-fast),
+            color var(--js-transition-fast);
+    }
+
+    .js-button-primary {
+        background-color: var(--js-primary);
+        color: var(--js-primary-text);
+        border-color: var(--js-primary);
+    }
+
+    .js-button-primary:hover:not(:disabled) {
+        background-color: var(--js-primary-hover);
+        border-color: var(--js-primary-hover);
+    }
+
+    .js-button-secondary {
+        background-color: var(--js-surface);
+        color: var(--js-text);
+        border-color: var(--js-border-strong);
+    }
+
+    .js-button-secondary:hover:not(:disabled) {
+        background-color: var(--js-surface-hover);
+    }
+
+    .js-button-ghost {
+        background-color: transparent;
+        color: var(--js-text-secondary);
+    }
+
+    .js-button-ghost:hover:not(:disabled) {
+        background-color: var(--js-surface-hover);
+        color: var(--js-text);
+    }
+
+    .js-button-danger {
+        background-color: var(--js-danger-soft);
+        color: var(--js-danger);
+        border-color: var(--js-danger);
+    }
+
+    .js-button-danger:hover:not(:disabled) {
+        background-color: var(--js-danger);
+        color: var(--js-surface);
+    }
+
+    .js-button-sm {
+        min-height: 34px;
+        padding: 6px 12px;
+        font-size: var(--js-font-sm);
+    }
+
+    .js-button-icon {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        padding: 0;
+    }
+
+    .js-button:disabled,
+    .js-button[aria-disabled="true"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ==============================================
+       8. FORMULARIOS
+       ============================================== */
+
+    .js-field {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: var(--js-space-2);
+    }
+
+    .js-label {
+        color: var(--js-text);
+        font-size: var(--js-font-sm);
+        font-weight: 600;
+    }
+
+    .js-input,
+    .js-select,
+    .js-textarea {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        background-color: var(--js-input-bg);
+        color: var(--js-text);
+        border: 1px solid var(--js-border-strong);
+        border-radius: var(--js-radius-md);
+        font-size: var(--js-font-base);
+        transition:
+            border-color var(--js-transition-fast),
+            box-shadow var(--js-transition-fast);
+    }
+
+    .js-input::placeholder,
+    .js-textarea::placeholder {
+        color: var(--js-text-muted);
+    }
+
+    .js-input:focus,
+    .js-select:focus,
+    .js-textarea:focus {
+        border-color: var(--js-focus);
+        outline: 2px solid var(--js-focus);
+        outline-offset: 1px;
+    }
+
+    .js-input:disabled,
+    .js-select:disabled,
+    .js-textarea:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .js-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .js-input-error,
+    .js-input[aria-invalid="true"],
+    .js-select[aria-invalid="true"],
+    .js-textarea[aria-invalid="true"] {
+        border-color: var(--js-danger);
+    }
+
+    .js-field-help {
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-xs);
+    }
+
+    .js-field-error {
+        color: var(--js-danger);
+        font-size: var(--js-font-xs);
+    }
+
+    .js-checkbox,
+    .js-radio {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--js-primary);
+    }
+
+    /* ==============================================
+       9. INDICADORES DE ESTADO
+       ============================================== */
+
+    .js-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--js-space-1);
+        padding: 4px 10px;
+        background-color: var(--js-surface-secondary);
+        color: var(--js-text-secondary);
+        border-radius: var(--js-radius-full);
+        font-size: var(--js-font-xs);
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .js-badge-primary {
+        background-color: var(--js-primary-soft);
+        color: var(--js-primary-foreground);
+    }
+
+    .js-badge-success {
+        background-color: var(--js-success-soft);
+        color: var(--js-success);
+    }
+
+    .js-badge-warning {
+        background-color: var(--js-warning-soft);
+        color: var(--js-warning);
+    }
+
+    .js-badge-danger {
+        background-color: var(--js-danger-soft);
+        color: var(--js-danger);
+    }
+
+    .js-badge-info {
+        background-color: var(--js-info-soft);
+        color: var(--js-info);
+    }
+
+    /* ==============================================
+       10. ALERTAS
+       ============================================== */
+
+    .js-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--js-space-3);
+        padding: var(--js-space-4);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-md);
+        font-size: var(--js-font-base);
+        line-height: 1.6;
+    }
+
+    .js-alert-success {
+        background-color: var(--js-success-soft);
+        color: var(--js-success);
+        border-color: var(--js-success);
+    }
+
+    .js-alert-warning {
+        background-color: var(--js-warning-soft);
+        color: var(--js-warning);
+        border-color: var(--js-warning);
+    }
+
+    .js-alert-danger {
+        background-color: var(--js-danger-soft);
+        color: var(--js-danger);
+        border-color: var(--js-danger);
+    }
+
+    .js-alert-info {
+        background-color: var(--js-info-soft);
+        color: var(--js-info);
+        border-color: var(--js-info);
+    }
+
+    /* ==============================================
+       11. TABLAS
+       ============================================== */
+
+    .js-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        background-color: var(--js-surface);
+        border: 1px solid var(--js-border);
+        border-radius: var(--js-radius-lg);
+    }
+
+    .js-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--js-font-base);
+        text-align: left;
+    }
+
+    .js-table thead {
+        background-color: var(--js-surface-secondary);
+    }
+
+    .js-table th {
+        padding: 12px 16px;
+        color: var(--js-text-secondary);
+        border-bottom: 1px solid var(--js-border);
+        font-size: var(--js-font-xs);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .js-table td {
+        padding: 14px 16px;
+        color: var(--js-text);
+        border-bottom: 1px solid var(--js-border);
+        vertical-align: middle;
+    }
+
+    .js-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .js-table tbody tr:hover {
+        background-color: var(--js-surface-hover);
+    }
+
+    /* ==============================================
+       12. ESTADOS VACÍOS
+       ============================================== */
+
+    .js-empty-state {
+        display: flex;
+        min-height: 180px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--js-space-3);
+        padding: var(--js-space-8);
+        color: var(--js-text-secondary);
+        text-align: center;
+    }
+
+    .js-empty-state-title {
+        color: var(--js-text);
+        font-size: var(--js-font-lg);
+        font-weight: 600;
+    }
+
+    /* ==============================================
+       13. CUADRÍCULAS Y CONTENEDORES
+       ============================================== */
+
+    .js-container {
+        width: 100%;
+        max-width: 1600px;
+        margin-inline: auto;
+        padding: var(--js-space-6);
+    }
+
+    .js-grid {
+        display: grid;
+        gap: var(--js-space-4);
+    }
+
+    .js-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .js-grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .js-grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .js-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--js-space-4);
+    }
+
+    .js-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--js-space-2);
+    }
+
+    /* ==============================================
+       14. IDENTIDAD VISUAL
+       ============================================== */
+
+    .js-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--js-space-2);
+        color: var(--js-primary-foreground);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+    }
+
+    /* ==============================================
+       15. SELECTOR DE TEMA
+       ============================================== */
+
+    :root[data-theme="light"] [data-theme-icon="light"],
+    :root[data-theme="dark"] [data-theme-icon="dark"] {
+        display: inline-flex;
+    }
+
+    :root[data-theme="light"] [data-theme-icon="dark"],
+    :root[data-theme="dark"] [data-theme-icon="light"] {
+        display: none;
+    }
+
+    /* ==============================================
+       16. DISEÑO RESPONSIVO
+       ============================================== */
+
+    @media (max-width: 1199px) {
+        .js-grid-4 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 767px) {
+        .js-container {
+            padding: var(--js-space-4);
+        }
+
+        .js-card {
+            padding: var(--js-space-4);
+        }
+
+        .js-grid-3 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .js-page-title {
+            font-size: 22px;
+        }
+    }
+
+    @media (max-width: 479px) {
+        .js-grid-2,
+        .js-grid-3,
+        .js-grid-4 {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .js-container {
+            padding: var(--js-space-3);
+        }
+
+        .js-card {
+            padding: var(--js-space-3);
+        }
+
+        .js-table th,
+        .js-table td {
+            padding: 10px 12px;
+        }
+    }
+}
+
+/* ==================================================
+   17. ACCESIBILIDAD
+   ================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
