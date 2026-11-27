@@ -1,0 +1,213 @@
+@layer components {
+
+    /* 1. ESTRUCTURA GENERAL */
+
+    .js-guest-body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        background-color: var(--js-bg);
+        color: var(--js-text);
+    }
+
+    .js-guest-shell {
+        display: flex;
+        min-height: 100vh;
+        min-height: 100dvh;
+        flex-direction: column;
+    }
+
+    /* 2. ENCABEZADO */
+
+    .js-guest-header {
+        display: flex;
+        min-height: 72px;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--js-space-4);
+        padding: var(--js-space-4) var(--js-space-8);
+    }
+
+    /* 3. CONTENIDO PRINCIPAL */
+
+    .js-guest-main {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+        justify-content: center;
+        padding: var(--js-space-8) var(--js-space-6);
+    }
+
+    .js-guest-content {
+        width: 100%;
+        max-width: 440px;
+        min-width: 0;
+    }
+
+    /* 4. TARJETA DE ACCESO */
+
+    .js-card.js-guest-card {
+        padding: var(--js-space-8);
+        border-radius: var(--js-radius-xl);
+        box-shadow: var(--js-shadow-md);
+    }
+
+    .js-guest-card-heading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--js-space-2);
+        margin-bottom: var(--js-space-6);
+        text-align: center;
+    }
+
+    .js-guest-emblem {
+        display: inline-flex;
+        width: 64px;
+        height: 64px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: var(--js-space-2);
+        background-color: var(--js-primary-soft);
+        color: var(--js-primary-foreground);
+        border-radius: var(--js-radius-xl);
+    }
+
+    .js-guest-title {
+        margin: 0;
+        color: var(--js-text);
+        font-size: 26px;
+        font-weight: 650;
+        line-height: 1.3;
+        letter-spacing: -0.5px;
+    }
+
+    .js-guest-description {
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-base);
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    /* 5. FORMULARIO DE ACCESO */
+
+    .js-guest-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--js-space-5);
+    }
+
+    .js-guest-form .js-input {
+        min-height: 46px;
+    }
+
+    .js-guest-form .js-button {
+        width: 100%;
+        min-height: 46px;
+    }
+
+    .js-guest-notice {
+        margin-top: var(--js-space-6);
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-xs);
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    /* 6. PANTALLAS DE ERROR */
+
+    .js-guest-error-code {
+        color: var(--js-primary-foreground);
+        font-size: clamp(56px, 12vw, 80px);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -3px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .js-guest-error-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--js-space-3);
+        color: var(--js-text-secondary);
+        font-size: var(--js-font-base);
+        line-height: 1.7;
+        text-align: center;
+    }
+
+    .js-guest-actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--js-space-3);
+        margin-top: var(--js-space-6);
+    }
+
+    .js-guest-actions form {
+        width: 100%;
+        margin: 0;
+    }
+
+    .js-guest-actions .js-button {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    /* 7. PIE DE PAGINA */
+
+    .js-guest-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--js-space-1);
+        padding: var(--js-space-5);
+        color: var(--js-text-muted);
+        font-size: var(--js-font-xs);
+        line-height: 1.5;
+        text-align: center;
+    }
+
+    /* 8. DISENO RESPONSIVO */
+
+    @media (max-width: 767px) {
+
+        .js-guest-header {
+            min-height: 64px;
+            padding: var(--js-space-3) var(--js-space-4);
+        }
+
+        .js-guest-main {
+            padding: var(--js-space-5) var(--js-space-4);
+        }
+
+        .js-card.js-guest-card {
+            padding: var(--js-space-6);
+        }
+
+    }
+
+    @media (max-width: 479px) {
+
+        .js-guest-main {
+            padding: var(--js-space-4) var(--js-space-3);
+        }
+
+        .js-card.js-guest-card {
+            padding: var(--js-space-5);
+        }
+
+        .js-guest-title {
+            font-size: 24px;
+        }
+
+        .js-guest-emblem {
+            width: 56px;
+            height: 56px;
+        }
+
+        .js-guest-footer {
+            padding: var(--js-space-4);
+        }
+
+    }
+
+}
