@@ -24,7 +24,7 @@ return [
             'descripcion' => 'Control de productos, piezas y existencias.',
             'icono' => 'boxes',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'inventario.index',
             'requiere_sucursal' => true,
         ],
 
@@ -34,7 +34,7 @@ return [
             'descripcion' => 'Registro y seguimiento de incidencias de inventario.',
             'icono' => 'alert',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'incidencias.index',
             'requiere_sucursal' => true,
         ],
 

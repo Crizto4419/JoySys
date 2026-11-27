@@ -44,7 +44,7 @@ return [
             'descripcion' => 'Agregar un producto al catálogo.',
             'permiso' => 'catalogos.crear',
             'icono' => 'package',
-            'ruta' => null,
+            'ruta' => 'catalogos.productos.create',
             'requiere_sucursal' => false,
         ],
 
@@ -62,7 +62,7 @@ return [
             'descripcion' => 'Registrar una incidencia de inventario.',
             'permiso' => 'incidencias.reportar',
             'icono' => 'alert',
-            'ruta' => null,
+            'ruta' => 'incidencias.create',
             'requiere_sucursal' => true,
         ],
 

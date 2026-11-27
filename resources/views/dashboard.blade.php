@@ -578,6 +578,18 @@
                                         Sucursal requerida
                                     </span>
 
+                                @elseif (
+                                    ! empty($acceso['ruta'])
+                                    && \Illuminate\Support\Facades\Route::has($acceso['ruta'])
+                                )
+
+                                    <a
+                                        href="{{ route($acceso['ruta']) }}"
+                                        class="js-button js-button-secondary js-button-sm"
+                                    >
+                                        Abrir
+                                    </a>
+
                                 @else
 
                                     <span class="js-badge">

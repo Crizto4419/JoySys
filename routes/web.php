@@ -145,3 +145,76 @@ Route::middleware(['auth', 'usuario.activo'])
             ->middleware("can:joysys.permiso,'precios.ver_historial'")
             ->name('historial');
     });
+
+
+Route::middleware([
+    'auth',
+    'usuario.activo',
+    'sucursal.activa',
+])->prefix('inventario')->name('inventario.')->group(function () {
+    $controlador = \App\Http\Controllers\Inventario\InventarioController::class;
+
+    Route::get('/', [$controlador, 'index'])
+        ->middleware("can:joysys.permiso,'inventario.ver'")
+        ->name('index');
+
+    Route::get('/piezas', [$controlador, 'piezas'])
+        ->middleware("can:joysys.permiso,'inventario.ver'")
+        ->name('piezas');
+
+    Route::get('/existencias', [$controlador, 'existencias'])
+        ->middleware("can:joysys.permiso,'inventario.ver'")
+        ->name('existencias');
+
+    Route::get('/movimientos', [$controlador, 'movimientos'])
+        ->middleware("can:joysys.permiso,'inventario.ver'")
+        ->name('movimientos');
+
+    Route::get('/entradas', [$controlador, 'entrada'])
+        ->middleware("can:joysys.permiso,'inventario.registrar_entrada'")
+        ->name('entradas.create');
+
+    Route::post('/entradas', [$controlador, 'registrarEntrada'])
+        ->middleware("can:joysys.permiso,'inventario.registrar_entrada'")
+        ->name('entradas.store');
+
+    Route::get('/salidas', [$controlador, 'salida'])
+        ->middleware("can:joysys.permiso,'inventario.registrar_salida'")
+        ->name('salidas.create');
+
+    Route::post('/salidas', [$controlador, 'registrarSalida'])
+        ->middleware("can:joysys.permiso,'inventario.registrar_salida'")
+        ->name('salidas.store');
+
+    Route::get('/ajustes', [$controlador, 'ajuste'])
+        ->middleware("can:joysys.permiso,'inventario.ajustar'")
+        ->name('ajustes.create');
+
+    Route::post('/ajustes', [$controlador, 'registrarAjuste'])
+        ->middleware("can:joysys.permiso,'inventario.ajustar'")
+        ->name('ajustes.store');
+});
+
+Route::middleware([
+    'auth',
+    'usuario.activo',
+    'sucursal.activa',
+])->prefix('incidencias')->name('incidencias.')->group(function () {
+    $controlador = \App\Http\Controllers\Inventario\IncidenciaController::class;
+
+    Route::get('/', [$controlador, 'index'])
+        ->middleware("can:joysys.permiso,'incidencias.ver'")
+        ->name('index');
+
+    Route::get('/crear', [$controlador, 'create'])
+        ->middleware("can:joysys.permiso,'incidencias.reportar'")
+        ->name('create');
+
+    Route::post('/', [$controlador, 'store'])
+        ->middleware("can:joysys.permiso,'incidencias.reportar'")
+        ->name('store');
+
+    Route::patch('/{incidencia}/estado', [$controlador, 'cambiarEstado'])
+        ->middleware("can:joysys.permiso,'incidencias.resolver'")
+        ->name('estado');
+});

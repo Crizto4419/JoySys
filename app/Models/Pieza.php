@@ -20,6 +20,28 @@ class Pieza extends Model
         'peso_gramos',
     ];
 
+    protected static function booted(): void
+    {
+        static::updating(function (Pieza $pieza): void {
+            if ($pieza->isDirty([
+                'codigo_pieza',
+                'producto_id',
+                'metal_id',
+                'pureza_id',
+            ])) {
+                throw new \LogicException(
+                    'La identidad de una pieza registrada es inmutable.'
+                );
+            }
+        });
+
+        static::deleting(function (Pieza $pieza): void {
+            throw new \LogicException(
+                'Las piezas registradas no pueden eliminarse.'
+            );
+        });
+    }
+
     protected function casts(): array
     {
         return [

@@ -50,7 +50,7 @@
     </a>
 @else
     <button
-        type="{{ $disabled ? 'button' : $buttonType }}"
+        type="{{ $buttonType }}"
         @disabled($disabled)
         {{ $attributes->class($classes) }}
     >

@@ -11,6 +11,21 @@ class MovimientoInventario extends Model
 
     const UPDATED_AT = null;
 
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new \LogicException(
+                'Los movimientos de inventario no pueden modificarse.'
+            );
+        });
+
+        static::deleting(function () {
+            throw new \LogicException(
+                'Los movimientos de inventario no pueden eliminarse.'
+            );
+        });
+    }
+
     protected $fillable = [
         'producto_id',
         'sucursal_id',

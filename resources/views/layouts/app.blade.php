@@ -52,6 +52,23 @@
 
 <body class="js-app-body">
 
+    @php
+        $usuarioLayout = request()->user();
+        $sucursalLayout = null;
+
+        if ($usuarioLayout instanceof \App\Models\User) {
+            $sucursalLayout = request()->attributes->get(
+                'sucursal_operativa'
+            );
+
+            if (! ($sucursalLayout instanceof \App\Models\Sucursal)) {
+                $sucursalLayout = app(
+                    \App\Services\Auth\ContextoSucursalService::class
+                )->obtenerSucursal($usuarioLayout);
+            }
+        }
+    @endphp
+
     <a href="#joysys-main" class="js-skip-link">
         Saltar al contenido principal
     </a>
@@ -59,7 +76,7 @@
     <div class="js-app-shell">
 
         <x-layout.sidebar
-            :sucursal-operativa="$sucursalOperativa ?? null"
+            :sucursal-operativa="$sucursalLayout"
         />
 
         <div
@@ -72,7 +89,7 @@
         <div class="js-app-workspace" data-app-workspace>
 
             <x-layout.header
-                :sucursal-operativa="$sucursalOperativa ?? null"
+                :sucursal-operativa="$sucursalLayout"
             />
 
             <main

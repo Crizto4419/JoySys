@@ -1022,18 +1022,77 @@ class DashboardTest extends TestCase
             $permisos
         );
 
+        $rutasEsperadasAdmin = [
+            'ventas.crear' => null,
+            'caja.abrir' => null,
+            'caja.cerrar' => null,
+            'catalogos.crear' => 'catalogos.productos.create',
+            'clientes.crear' => null,
+            'incidencias.reportar' => 'incidencias.create',
+        ];
+
         foreach (
             $resumenAdmin['accesos_rapidos']
             as $acceso
         ) {
-            $this->assertNull($acceso['ruta']);
+            $this->assertArrayHasKey(
+                $acceso['permiso'],
+                $rutasEsperadasAdmin
+            );
+
+            $this->assertSame(
+                $rutasEsperadasAdmin[$acceso['permiso']],
+                $acceso['ruta']
+            );
         }
+
+        $rutasEsperadasEmpleado = $rutasEsperadasAdmin;
+
+        unset($rutasEsperadasEmpleado['catalogos.crear']);
+
+        foreach (
+            $resumenEmpleado['accesos_rapidos']
+            as $acceso
+        ) {
+            $this->assertArrayHasKey(
+                $acceso['permiso'],
+                $rutasEsperadasEmpleado
+            );
+
+            $this->assertSame(
+                $rutasEsperadasEmpleado[$acceso['permiso']],
+                $acceso['ruta']
+            );
+        }
+
+        $this->actingAs($this->administrador)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText('Registrar producto')
+            ->assertSee(
+                'href="'.route('catalogos.productos.create').'"',
+                false
+            )
+            ->assertSeeText('Reportar incidencia')
+            ->assertSee(
+                'href="'.route('incidencias.create').'"',
+                false
+            );
 
         $this->actingAs($this->empleado)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSeeText('Nueva venta')
-            ->assertDontSeeText('Registrar producto');
+            ->assertSeeText('Reportar incidencia')
+            ->assertSee(
+                'href="'.route('incidencias.create').'"',
+                false
+            )
+            ->assertDontSeeText('Registrar producto')
+            ->assertDontSee(
+                'href="'.route('catalogos.productos.create').'"',
+                false
+            );
     }
 
     public function test_conexion_mysql_utiliza_utc(): void
