@@ -29,4 +29,15 @@
         @endforeach
     </div>
 </div>
+
+<x-ui.card
+    title="Productos"
+    description="Consulta y administra los productos de la joyeria."
+>
+    <x-ui.button
+        :href="route('catalogos.productos.index')"
+    >
+        Consultar productos
+    </x-ui.button>
+</x-ui.card>
 @endsection

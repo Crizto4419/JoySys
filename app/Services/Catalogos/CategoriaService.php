@@ -164,10 +164,17 @@ class CategoriaService
                     $datos['categoria_padre_id'] ?? null
                 );
 
-                $this->validarJerarquia(
-                    $padreId,
-                    (int) $registro->id
-                );
+                $conservaPadre = $registro->estado === 'inactiva'
+                    && $padreId === $this->normalizarPadre(
+                        $registro->categoria_padre_id
+                    );
+
+                if (!$conservaPadre) {
+                    $this->validarJerarquia(
+                        $padreId,
+                        (int) $registro->id
+                    );
+                }
 
                 $this->validarNombreUnico(
                     $nombre,
@@ -401,6 +408,20 @@ class CategoriaService
     {
         if ($valor === null || $valor === '') {
             return null;
+        }
+
+        if (
+            (!is_int($valor) && !is_string($valor)) ||
+            !preg_match('/^[1-9][0-9]*$/D', (string) $valor) ||
+            filter_var(
+                $valor,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            ) === false
+        ) {
+            throw ValidationException::withMessages([
+                'categoria_padre_id' => 'El identificador de la categoria padre no es valido.',
+            ]);
         }
 
         return (int) $valor;

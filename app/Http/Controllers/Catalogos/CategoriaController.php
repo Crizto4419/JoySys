@@ -85,6 +85,27 @@ class CategoriaController extends Controller
         $padresDisponibles = $this->categoriaService
             ->obtenerPadresDisponibles($categoria);
 
+        if (
+            $categoria->categoria_padre_id !== null &&
+            !$padresDisponibles->contains(
+                'id',
+                $categoria->categoria_padre_id
+            )
+        ) {
+            $padreActual = Categoria::withTrashed()
+                ->find($categoria->categoria_padre_id);
+
+            if ($padreActual) {
+                $padreActual->nombre .= ' (referencia actual no disponible)';
+
+                $padresDisponibles->push($padreActual);
+
+                $padresDisponibles = $padresDisponibles
+                    ->sortBy('nombre')
+                    ->values();
+            }
+        }
+
         return view('catalogos.categorias.edit', [
             'categoria' => $categoria,
             'padresDisponibles' => $padresDisponibles,

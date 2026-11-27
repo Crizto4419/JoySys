@@ -42,9 +42,7 @@ class GuardarCategoriaRequest extends FormRequest
                 'nullable',
                 'integer',
                 'min:1',
-                Rule::exists('categorias', 'id')
-                    ->whereNull('deleted_at')
-                    ->where('estado', 'activa'),
+                Rule::exists('categorias', 'id'),
             ],
 
             'estado' => [

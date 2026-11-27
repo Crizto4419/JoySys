@@ -55,6 +55,11 @@ Route::middleware(['auth', 'usuario.activo'])
             ->name('index');
 
         $modulos = [
+            'productos' => [
+                \App\Http\Controllers\Catalogos\ProductoController::class,
+                'producto',
+                true,
+            ],
             'categorias' => [
                 \App\Http\Controllers\Catalogos\CategoriaController::class,
                 'categoria',
@@ -104,4 +109,39 @@ Route::middleware(['auth', 'usuario.activo'])
                 }
             );
         }
+    });
+
+
+Route::middleware(['auth', 'usuario.activo'])
+    ->prefix('precios')
+    ->name('precios.')
+    ->group(function () {
+
+        Route::get('/', [
+            \App\Http\Controllers\Precios\PrecioController::class,
+            'index',
+        ])
+            ->middleware("can:joysys.permiso,'precios.ver'")
+            ->name('index');
+
+        Route::get('/{producto}/editar', [
+            \App\Http\Controllers\Precios\PrecioController::class,
+            'edit',
+        ])
+            ->middleware("can:joysys.permiso,'precios.modificar'")
+            ->name('edit');
+
+        Route::put('/{producto}', [
+            \App\Http\Controllers\Precios\PrecioController::class,
+            'update',
+        ])
+            ->middleware("can:joysys.permiso,'precios.modificar'")
+            ->name('update');
+
+        Route::get('/{producto}/historial', [
+            \App\Http\Controllers\Precios\PrecioController::class,
+            'historial',
+        ])
+            ->middleware("can:joysys.permiso,'precios.ver_historial'")
+            ->name('historial');
     });

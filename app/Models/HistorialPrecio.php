@@ -11,6 +11,21 @@ class HistorialPrecio extends Model
 
     const UPDATED_AT = null;
 
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new \LogicException(
+                'El historial de precios no puede modificarse.'
+            );
+        });
+
+        static::deleting(function () {
+            throw new \LogicException(
+                'El historial de precios no puede eliminarse.'
+            );
+        });
+    }
+
     protected $fillable = [
         'producto_id',
         'precio_anterior',
@@ -44,6 +59,6 @@ class HistorialPrecio extends Model
             User::class,
             'usuario_id',
             'id'
-        );
+        )->withTrashed();
     }
 }

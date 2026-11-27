@@ -44,7 +44,7 @@ return [
             'descripcion' => 'Consulta y administración de precios de productos.',
             'icono' => 'tag',
             'grupo' => 'operaciones',
-            'ruta' => null,
+            'ruta' => 'precios.index',
             'requiere_sucursal' => false,
         ],
 
