@@ -379,14 +379,93 @@ class DashboardTest extends TestCase
             $detalleOriginalId
         );
 
-        $this->crearPago(
+        $clienteId = DB::table('clientes')->insertGetId([
+            'codigo' => 'CLI-SF-'.(++$this->secuencia),
+            'nombre' => 'Cliente saldo a favor',
+            'activo' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('ventas')
+            ->where('id', $ventaId)
+            ->update([
+                'cliente_id' => $clienteId,
+            ]);
+
+        $saldoFavorId = DB::table('saldos_favor')
+            ->insertGetId([
+                'cliente_id' => $clienteId,
+                'sucursal_id' => $this->sucursalId,
+                'usuario_id' => $this->administrador->id,
+                'moneda' => 'MXN',
+                'saldo_disponible' => '200.0000',
+                'estado' => 'activo',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        DB::table('movimientos_saldos_favor')->insert([
+            'saldo_favor_id' => $saldoFavorId,
+            'sucursal_id' => $this->sucursalId,
+            'usuario_id' => $this->administrador->id,
+            'autorizado_por' => $this->administrador->id,
+            'tipo_movimiento' => 'generacion',
+            'monto' => '200.0000',
+            'saldo_anterior' => '0.0000',
+            'saldo_nuevo' => '200.0000',
+            'created_at' => now(),
+        ]);
+
+        $pagoSaldoFavorId = $this->crearPago(
             $this->administrador,
             $this->sucursalId,
             $ventaId,
             '200.0000',
             'confirmado',
-            'saldo_favor'
+            'saldo_favor',
+            null,
+            null,
+            null,
+            $saldoFavorId
         );
+
+        $detalleSaldoFavorId = DB::table('detalle_pagos')
+            ->where('pago_id', $pagoSaldoFavorId)
+            ->value('id');
+
+        $aplicacionId = DB::table('aplicaciones_saldos_favor')
+            ->insertGetId([
+                'saldo_favor_id' => $saldoFavorId,
+                'detalle_pago_id' => $detalleSaldoFavorId,
+                'sucursal_id' => $this->sucursalId,
+                'usuario_id' => $this->administrador->id,
+                'monto_aplicado' => '200.0000',
+                'estado' => 'aplicada',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        DB::table('movimientos_saldos_favor')->insert([
+            'saldo_favor_id' => $saldoFavorId,
+            'sucursal_id' => $this->sucursalId,
+            'usuario_id' => $this->administrador->id,
+            'tipo_movimiento' => 'aplicacion',
+            'monto' => '200.0000',
+            'saldo_anterior' => '200.0000',
+            'saldo_nuevo' => '0.0000',
+            'aplicacion_saldo_favor_id' => $aplicacionId,
+            'pago_id' => $pagoSaldoFavorId,
+            'created_at' => now(),
+        ]);
+
+        DB::table('saldos_favor')
+            ->where('id', $saldoFavorId)
+            ->update([
+                'saldo_disponible' => '0.0000',
+                'estado' => 'agotado',
+                'updated_at' => now(),
+            ]);
 
         $resumen = $this->resumen(
             $this->administrador
@@ -1574,7 +1653,8 @@ class DashboardTest extends TestCase
         string $metodo = 'efectivo',
         ?int $pagoOriginalId = null,
         ?string $fecha = null,
-        ?int $detalleOriginalId = null
+        ?int $detalleOriginalId = null,
+        ?int $saldoFavorId = null
     ): int {
         $pagoId = DB::table('pagos')
             ->insertGetId([
@@ -1585,10 +1665,8 @@ class DashboardTest extends TestCase
                 'recibido_por' => $usuario->id,
                 'monto_total' => $importe,
                 'moneda' => 'MXN',
-                'estado' => $estado,
-                'fecha_pago' => $estado === 'confirmado'
-                    ? ($fecha ?? now())
-                    : null,
+                'estado' => 'pendiente',
+                'fecha_pago' => null,
                 'created_at' => $fecha ?? now(),
             ]);
 
@@ -1597,8 +1675,20 @@ class DashboardTest extends TestCase
             'metodo_pago' => $metodo,
             'monto' => $importe,
             'detalle_pago_original_id' => $detalleOriginalId,
+            'saldo_favor_id' => $saldoFavorId,
             'created_at' => $fecha ?? now(),
         ]);
+
+        if ($estado !== 'pendiente') {
+            DB::table('pagos')
+                ->where('id', $pagoId)
+                ->update([
+                    'estado' => $estado,
+                    'fecha_pago' => $estado === 'confirmado'
+                        ? ($fecha ?? now())
+                        : null,
+                ]);
+        }
 
         return $pagoId;
     }

@@ -6,6 +6,14 @@ use App\Models\SesionCaja;
 use App\Models\MovimientoCaja;
 use App\Models\Pago;
 use App\Models\DetallePago;
+use App\Models\Venta;
+use App\Models\Cliente;
+use App\Models\SaldoFavor;
+use App\Models\MovimientoSaldoFavor;
+use App\Models\AplicacionSaldoFavor;
+use App\Services\Finanzas\PagoService;
+use App\Services\Finanzas\ReembolsoService;
+use App\Services\Finanzas\SaldoFavorService;
 use App\Services\Caja\SesionCajaService;
 use App\Services\Caja\MovimientoCajaService;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +86,9 @@ function prepararUsuario(int $sucursal): User
         'caja.autorizar_compensacion',
         'pagos.ver',
         'pagos.registrar',
+        'pagos.reembolsar',
+        'saldos_favor.generar',
+        'saldos_favor.cancelar',
     ];
 
     foreach ($permisos as $clave) {
@@ -224,6 +235,35 @@ function ejecutarOperacion(array $tarea): mixed
             ],
             $usuario
         ),
+
+        'fin_cobrar' => app(PagoService::class)
+            ->registrarConfirmado(
+                $tarea['datos'],
+                $usuario,
+                $tarea['clave'] ?? null
+            ),
+
+        'fin_confirmar' => app(PagoService::class)
+            ->confirmar($tarea['pago'], $usuario),
+
+        'fin_cancelar' => app(PagoService::class)
+            ->cancelar($tarea['pago'], $usuario),
+
+        'fin_reembolsar' => app(ReembolsoService::class)
+            ->registrar(
+                $tarea['pago'],
+                $tarea['datos'],
+                $usuario,
+                $tarea['clave'] ?? null
+            ),
+
+        'fin_cancelar_credito' => app(SaldoFavorService::class)
+            ->cancelar(
+                $tarea['credito'],
+                'Cancelacion de prueba concurrente',
+                $tarea['clave'],
+                $usuario
+            ),
 
         default => throw new RuntimeException(
             'Operacion desconocida.'
@@ -469,6 +509,632 @@ function verificarResultados(array $resultados, int $correctos): void
     );
 }
 
+function ventaFinanciera(
+    int $sucursal,
+    User $usuario,
+    string $total = '100.0000',
+    ?Cliente $cliente = null
+): Venta {
+    return Venta::query()->create([
+        'sucursal_id' => $sucursal,
+        'usuario_id' => $usuario->id,
+        'cliente_id' => $cliente?->id,
+        'folio' => 'CF-'.bin2hex(random_bytes(8)),
+        'subtotal' => $total,
+        'descuento_total' => '0.0000',
+        'impuestos' => '0.0000',
+        'total' => $total,
+        'estado' => 'completada',
+    ]);
+}
+
+function datosFinancieros(
+    Venta $venta,
+    string $monto,
+    string $metodo = 'transferencia',
+    ?SaldoFavor $credito = null
+): array {
+    $detalle = [
+        'metodo_pago' => $metodo,
+        'monto' => $monto,
+    ];
+
+    if ($credito !== null) {
+        $detalle['saldo_favor_id'] = $credito->id;
+    }
+
+    return [
+        'referencia_tipo' => 'venta',
+        'referencia_id' => $venta->id,
+        'monto_total' => $monto,
+        'moneda' => 'MXN',
+        'detalles' => [$detalle],
+    ];
+}
+
+function tareaCobro(
+    User $usuario,
+    array $datos,
+    ?string $clave = null
+): array {
+    return [
+        'operacion' => 'fin_cobrar',
+        'usuario' => $usuario->id,
+        'datos' => $datos,
+        'clave' => $clave,
+    ];
+}
+
+function tareaReembolso(
+    User $usuario,
+    Pago $pago,
+    string $monto,
+    ?string $clave = null
+): array {
+    return [
+        'operacion' => 'fin_reembolsar',
+        'usuario' => $usuario->id,
+        'pago' => $pago->id,
+        'clave' => $clave,
+        'datos' => [
+            'justificacion' => 'Reembolso concurrente de prueba',
+            'detalles' => [[
+                'detalle_pago_original_id' =>
+                    $pago->detalles()->firstOrFail()->id,
+                'monto' => $monto,
+            ]],
+        ],
+    ];
+}
+
+function creditoFinanciero(
+    int $sucursal,
+    User $usuario
+): SaldoFavor {
+    $cliente = Cliente::query()->create([
+        'codigo' => 'CF-'.bin2hex(random_bytes(8)),
+        'nombre' => 'Cliente concurrencia',
+        'estado' => 'activo',
+    ]);
+
+    $credito = SaldoFavor::query()->create([
+        'cliente_id' => $cliente->id,
+        'sucursal_id' => $sucursal,
+        'usuario_id' => $usuario->id,
+        'moneda' => 'MXN',
+        'saldo_disponible' => '100.0000',
+        'estado' => 'activo',
+    ]);
+
+    MovimientoSaldoFavor::query()->create([
+        'saldo_favor_id' => $credito->id,
+        'sucursal_id' => $sucursal,
+        'usuario_id' => $usuario->id,
+        'autorizado_por' => $usuario->id,
+        'tipo_movimiento' => 'generacion',
+        'monto' => '100.0000',
+        'saldo_anterior' => '0.0000',
+        'saldo_nuevo' => '100.0000',
+    ]);
+
+    return $credito;
+}
+
+function pagosVenta(Venta $venta)
+{
+    return Pago::query()
+        ->where('sucursal_id', $venta->sucursal_id)
+        ->where('referencia_tipo', 'venta')
+        ->where('referencia_id', $venta->id)
+        ->whereNull('pago_original_id');
+}
+
+function verificarMismoResultado(array $r): void
+{
+    verificarResultados($r, 2);
+
+    comprobar(
+        $r[0]['id'] !== null
+        && $r[0]['id'] === $r[1]['id'],
+        'Resultado idempotente incorrecto.'
+    );
+}
+
+function concurrenciaFinanciera(): int
+{
+    $aprobadas = 0;
+    $pagos = app(PagoService::class);
+
+    // CF01: dos cobros superiores al total disponible.
+
+    echo "\n=== CF01: LIMITE DE VENTA ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF01');
+
+    $venta = ventaFinanciera($s, $u);
+    $t = tareaCobro(
+        $u,
+        datosFinancieros($venta, '80.0000')
+    );
+
+    $r = simultaneas($t, $t);
+
+    verificarResultados($r, 1);
+
+    comprobar(
+        pagosVenta($venta)->count() === 1,
+        'Cobro duplicado.'
+    );
+
+    importe(
+        pagosVenta($venta)->sum('monto_total'),
+        '80.0000'
+    );
+
+    echo "CF01 APROBADA\n";
+    $aprobadas++;
+
+    // CF02: confirmacion simultanea del mismo pago.
+
+    echo "\n=== CF02: DOBLE CONFIRMACION ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF02');
+
+    $sesion = abrir($u, $c1);
+    $venta = ventaFinanciera($s, $u);
+
+    $pago = $pagos->registrarPendiente(
+        datosFinancieros($venta, '50.0000', 'efectivo'),
+        $u
+    );
+
+    $t = [
+        'operacion' => 'fin_confirmar',
+        'usuario' => $u->id,
+        'pago' => $pago->id,
+    ];
+
+    $r = simultaneas($t, $t);
+
+    verificarMismoResultado($r);
+
+    comprobar(
+        $pago->fresh()->estado === 'confirmado'
+        && $sesion->movimientos()->count() === 1,
+        'Confirmacion duplicada.'
+    );
+
+    importe(saldo($sesion), '150.0000');
+
+    echo "CF02 APROBADA\n";
+    $aprobadas++;
+
+    // CF03: misma clave idempotente.
+
+    echo "\n=== CF03: COBRO IDEMPOTENTE ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF03');
+
+    $venta = ventaFinanciera($s, $u);
+
+    $t = tareaCobro(
+        $u,
+        datosFinancieros($venta, '50.0000'),
+        'CF03-'.bin2hex(random_bytes(8))
+    );
+
+    verificarMismoResultado(simultaneas($t, $t));
+
+    comprobar(
+        pagosVenta($venta)->count() === 1,
+        'Pago idempotente duplicado.'
+    );
+
+    comprobar(
+        DB::table('operaciones_idempotentes')
+            ->where('sucursal_id', $s)
+            ->count() === 1,
+        'Registro idempotente incorrecto.'
+    );
+
+    echo "CF03 APROBADA\n";
+    $aprobadas++;
+
+    // CF04: confirmacion contra cancelacion.
+
+    echo "\n=== CF04: CONFIRMAR CONTRA CANCELAR ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF04');
+
+    $venta = ventaFinanciera($s, $u);
+
+    $pago = $pagos->registrarPendiente(
+        datosFinancieros($venta, '50.0000'),
+        $u
+    );
+
+    $a = [
+        'operacion' => 'fin_confirmar',
+        'usuario' => $u->id,
+        'pago' => $pago->id,
+    ];
+
+    $b = array_replace($a, [
+        'operacion' => 'fin_cancelar',
+    ]);
+
+    $r = simultaneas($a, $b);
+
+    verificarResultados($r, 1);
+
+    $estado = $r[0]['estado'] === 'correcto'
+        ? 'confirmado'
+        : 'cancelado';
+
+    comprobar(
+        $pago->fresh()->estado === $estado,
+        'Estado definitivo incorrecto.'
+    );
+
+    echo "CF04 APROBADA\n";
+    $aprobadas++;
+
+    // CF05 y CF06: limite e idempotencia de reembolsos.
+
+    foreach (['CF05', 'CF06'] as $caso) {
+        echo "\n=== {$caso}: REEMBOLSOS ===\n";
+
+        [$s, $u, $v, $c1, $c2] = escenario($caso);
+
+        $venta = ventaFinanciera($s, $u);
+
+        $original = $pagos->registrarConfirmado(
+            datosFinancieros($venta, '100.0000'),
+            $u
+        );
+
+        $t = tareaReembolso(
+            $u,
+            $original,
+            '70.0000',
+            $caso === 'CF06'
+                ? 'CF06-'.bin2hex(random_bytes(8))
+                : null
+        );
+
+        $r = simultaneas($t, $t);
+
+        if ($caso === 'CF06') {
+            verificarMismoResultado($r);
+
+            comprobar(
+                DB::table('operaciones_idempotentes')
+                    ->where('sucursal_id', $s)
+                    ->count() === 1,
+                'Idempotencia de reembolso incorrecta.'
+            );
+        } else {
+            verificarResultados($r, 1);
+        }
+
+        comprobar(
+            $original->reembolsos()->count() === 1,
+            'Reembolso duplicado.'
+        );
+
+        importe(
+            $original->reembolsos()->sum('monto_total'),
+            '70.0000'
+        );
+
+        comprobar(
+            $original->fresh()->estado === 'confirmado',
+            'Se modifico el pago original.'
+        );
+
+        echo "{$caso} APROBADA\n";
+        $aprobadas++;
+    }
+
+    // CF07: dos ventas consumen el mismo credito.
+
+    echo "\n=== CF07: CONSUMO SIMULTANEO DE CREDITO ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF07');
+
+    $credito = creditoFinanciero($s, $u);
+
+    $venta1 = ventaFinanciera(
+        $s, $u, '100.0000', $credito->cliente
+    );
+
+    $venta2 = ventaFinanciera(
+        $s, $v, '100.0000', $credito->cliente
+    );
+
+    $a = tareaCobro(
+        $u,
+        datosFinancieros(
+            $venta1, '80.0000', 'saldo_favor', $credito
+        )
+    );
+
+    $b = tareaCobro(
+        $v,
+        datosFinancieros(
+            $venta2, '80.0000', 'saldo_favor', $credito
+        )
+    );
+
+    verificarResultados(simultaneas($a, $b), 1);
+
+    importe($credito->fresh()->saldo_disponible, '20.0000');
+
+    comprobar(
+        $credito->aplicaciones()->count() === 1
+        && $credito->movimientos()->count() === 2,
+        'Aplicacion duplicada.'
+    );
+
+    comprobar(
+        pagosVenta($venta1)->count()
+        + pagosVenta($venta2)->count() === 1,
+        'El cobro rechazado dejo registros.'
+    );
+
+    echo "CF07 APROBADA\n";
+    $aprobadas++;
+
+    // CF08: restituciones superiores a la aplicacion.
+
+    echo "\n=== CF08: LIMITE DE RESTITUCION ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF08');
+
+    $credito = creditoFinanciero($s, $u);
+
+    $venta = ventaFinanciera(
+        $s, $u, '100.0000', $credito->cliente
+    );
+
+    $original = $pagos->registrarConfirmado(
+        datosFinancieros(
+            $venta, '80.0000', 'saldo_favor', $credito
+        ),
+        $u
+    );
+
+    $t = tareaReembolso($u, $original, '60.0000');
+
+    verificarResultados(simultaneas($t, $t), 1);
+
+    importe($credito->fresh()->saldo_disponible, '80.0000');
+
+    comprobar(
+        $original->reembolsos()->count() === 1
+        && $credito->movimientos()
+            ->where('tipo_movimiento', 'restitucion')
+            ->count() === 1,
+        'Restitucion duplicada.'
+    );
+
+    comprobar(
+        $credito->aplicaciones()->firstOrFail()->estado
+            === 'aplicada',
+        'Aplicacion revertida prematuramente.'
+    );
+
+    echo "CF08 APROBADA\n";
+    $aprobadas++;
+
+    // CF09: aplicacion contra cancelacion del credito.
+
+    echo "\n=== CF09: APLICAR CONTRA CANCELAR CREDITO ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF09');
+
+    $credito = creditoFinanciero($s, $u);
+
+    $venta = ventaFinanciera(
+        $s, $u, '100.0000', $credito->cliente
+    );
+
+    $a = tareaCobro(
+        $u,
+        datosFinancieros(
+            $venta, '60.0000', 'saldo_favor', $credito
+        )
+    );
+
+    $b = [
+        'operacion' => 'fin_cancelar_credito',
+        'usuario' => $v->id,
+        'credito' => $credito->id,
+        'clave' => 'CF09-'.bin2hex(random_bytes(8)),
+    ];
+
+    $r = simultaneas($a, $b);
+
+    verificarResultados($r, 1);
+
+    $credito->refresh();
+
+    if ($r[0]['estado'] === 'correcto') {
+        importe($credito->saldo_disponible, '40.0000');
+
+        comprobar(
+            $credito->estado === 'activo'
+            && $credito->aplicaciones()->count() === 1
+            && pagosVenta($venta)->count() === 1,
+            'Aplicacion inconsistente.'
+        );
+    } else {
+        importe($credito->saldo_disponible, '0.0000');
+
+        comprobar(
+            $credito->estado === 'cancelado'
+            && $credito->aplicaciones()->count() === 0
+            && pagosVenta($venta)->count() === 0,
+            'Cancelacion inconsistente.'
+        );
+    }
+
+    comprobar(
+        $credito->movimientos()->count() === 2,
+        'Historial de credito incorrecto.'
+    );
+
+    echo "CF09 APROBADA\n";
+    $aprobadas++;
+
+    // CF10: doble cancelacion idempotente.
+
+    echo "\n=== CF10: CANCELACION IDEMPOTENTE ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF10');
+
+    $credito = creditoFinanciero($s, $u);
+
+    $t = [
+        'operacion' => 'fin_cancelar_credito',
+        'usuario' => $u->id,
+        'credito' => $credito->id,
+        'clave' => 'CF10-'.bin2hex(random_bytes(8)),
+    ];
+
+    verificarMismoResultado(simultaneas($t, $t));
+
+    comprobar(
+        $credito->fresh()->estado === 'cancelado'
+        && $credito->movimientos()
+            ->where('tipo_movimiento', 'cancelacion')
+            ->count() === 1,
+        'Cancelacion duplicada.'
+    );
+
+    importe($credito->fresh()->saldo_disponible, '0.0000');
+
+    comprobar(
+        DB::table('operaciones_idempotentes')
+            ->where('sucursal_id', $s)
+            ->count() === 1,
+        'Idempotencia de cancelacion incorrecta.'
+    );
+
+    echo "CF10 APROBADA\n";
+    $aprobadas++;
+
+    // CF11: cobro en efectivo contra cierre de caja.
+
+    echo "\n=== CF11: COBRO CONTRA CIERRE ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF11');
+
+    $sesion = abrir($u, $c1);
+    $venta = ventaFinanciera($s, $u);
+
+    $a = tareaCobro(
+        $u,
+        datosFinancieros($venta, '50.0000', 'efectivo')
+    );
+
+    $b = [
+        'operacion' => 'cerrar',
+        'usuario' => $u->id,
+        'sesion' => $sesion->id,
+    ];
+
+    $r = simultaneas($a, $b);
+
+    $sesion->refresh();
+
+    comprobar(
+        $r[1]['estado'] === 'correcto'
+        && $sesion->estado === 'cerrada',
+        'Cierre incorrecto.'
+    );
+
+    if ($r[0]['estado'] === 'correcto') {
+        verificarResultados($r, 2);
+
+        importe($sesion->saldo_esperado, '150.0000');
+
+        comprobar(
+            pagosVenta($venta)->count() === 1
+            && $sesion->movimientos()->count() === 1,
+            'Cobro no registrado.'
+        );
+    } else {
+        verificarResultados($r, 1);
+
+        importe($sesion->saldo_esperado, '100.0000');
+
+        comprobar(
+            pagosVenta($venta)->count() === 0
+            && $sesion->movimientos()->count() === 0,
+            'Cobro posterior al cierre.'
+        );
+    }
+
+    importe(saldo($sesion), (string) $sesion->saldo_esperado);
+
+    echo "CF11 APROBADA\n";
+    $aprobadas++;
+
+    // CF12: reembolso contra retiro de efectivo.
+
+    echo "\n=== CF12: REEMBOLSO CONTRA RETIRO ===\n";
+
+    [$s, $u, $v, $c1, $c2] = escenario('CF12');
+
+    $sesion = abrir($u, $c1);
+    $venta = ventaFinanciera($s, $u);
+
+    $original = $pagos->registrarConfirmado(
+        datosFinancieros($venta, '100.0000', 'efectivo'),
+        $u
+    );
+
+    $a = tareaReembolso($u, $original, '80.0000');
+
+    $b = [
+        'operacion' => 'retiro',
+        'usuario' => $u->id,
+        'sesion' => $sesion->id,
+        'monto' => '150.0000',
+    ];
+
+    $r = simultaneas($a, $b);
+
+    verificarResultados($r, 1);
+
+    if ($r[0]['estado'] === 'correcto') {
+        importe(saldo($sesion), '120.0000');
+
+        comprobar(
+            $original->reembolsos()->count() === 1,
+            'Reembolso faltante.'
+        );
+    } else {
+        importe(saldo($sesion), '50.0000');
+
+        comprobar(
+            $original->reembolsos()->count() === 0,
+            'Reembolso rechazado persistido.'
+        );
+    }
+
+    comprobar(
+        $sesion->movimientos()->count() === 2,
+        'Movimientos de efectivo inconsistentes.'
+    );
+
+    echo "CF12 APROBADA\n";
+    $aprobadas++;
+
+    return $aprobadas;
+}
+
 try {
     iniciar();
 
@@ -487,7 +1153,7 @@ try {
     }
 
     comprobar(
-        DB::table('migrations')->count() === 30,
+        DB::table('migrations')->count() === 38,
         'Migraciones incorrectas.'
     );
 
@@ -693,8 +1359,8 @@ try {
         'recibido_por' => $u->id,
         'monto_total' => '50.0000',
         'moneda' => 'MXN',
-        'estado' => 'confirmado',
-        'fecha_pago' => now(),
+        'estado' => 'pendiente',
+        'fecha_pago' => null,
     ]);
 
     $detalle = $pago->detalles()->create([
@@ -704,6 +1370,11 @@ try {
         'detalle_adicional' => null,
         'detalle_pago_original_id' => null,
     ]);
+
+    $pago->forceFill([
+        'estado' => 'confirmado',
+        'fecha_pago' => now(),
+    ])->save();
 
     $tarea = [
         'operacion' => 'pago',
@@ -786,17 +1457,35 @@ try {
     echo "CC07 APROBADA\n";
     $aprobadas++;
 
+    comprobar(
+        $aprobadas === 8,
+        'Cobertura de caja incompleta.'
+    );
+
+    echo "\n=== CONCURRENCIA FINANCIERA ===\n";
+
+    $financieras = concurrenciaFinanciera();
+
+    comprobar(
+        $financieras === 12,
+        'Cobertura financiera incompleta.'
+    );
+
+    $aprobadas += $financieras;
+
     echo "\n=== RESULTADO GENERAL ===\n";
-    echo "PRUEBAS APROBADAS: {$aprobadas}/8\n";
+    echo "CAJA: 8/8\n";
+    echo "FINANZAS: {$financieras}/12\n";
+    echo "PRUEBAS APROBADAS: {$aprobadas}/20\n";
     echo "USUARIOS: ".DB::table('users')->count().PHP_EOL;
     echo "SUCURSALES: ".DB::table('sucursales')->count().PHP_EOL;
     echo "CAJAS: ".DB::table('cajas')->count().PHP_EOL;
     echo "SESIONES: ".DB::table('sesiones_caja')->count().PHP_EOL;
     echo "MOVIMIENTOS: ".DB::table('movimientos_caja')->count().PHP_EOL;
 
-    comprobar($aprobadas === 8, 'Cobertura incompleta.');
+    comprobar($aprobadas === 20, 'Cobertura incompleta.');
 
-    echo "JOYSYS_CONCURRENCIA_8_DE_8_OK\n";
+    echo "JOYSYS_CONCURRENCIA_20_DE_20_OK\n";
 
     exit(0);
 

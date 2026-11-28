@@ -86,6 +86,37 @@ class CajaService
         ];
     }
 
+    private static ?array $contextoTransaccional = null;
+
+    public function tieneBloqueoTransaccional(): bool
+    {
+        $conexion = DB::connection();
+
+        if (
+            $conexion->transactionLevel() < 1
+            || self::$contextoTransaccional === null
+            || self::$contextoTransaccional['conexion'] !== $conexion
+        ) {
+            return false;
+        }
+
+        $nombre = 'joysys:caja:'
+            .sha1($conexion->getDatabaseName());
+
+        $resultado = $conexion->selectOne(
+            'SELECT IS_USED_LOCK(?) AS propietario, CONNECTION_ID() AS conexion',
+            [$nombre],
+            false
+        );
+
+        return $resultado !== null
+            && (string) $resultado->conexion
+                === self::$contextoTransaccional['conexion_id']
+            && $resultado->propietario !== null
+            && (string) $resultado->propietario
+                === (string) $resultado->conexion;
+    }
+
     public function ejecutar(
         User $usuario,
         int $sucursalId,
@@ -94,6 +125,34 @@ class CajaService
         string $permiso = 'caja.ver'
     ): mixed {
         $conexion = DB::connection();
+
+        if (
+            self::$contextoTransaccional === null
+            && $conexion->transactionLevel() > 0
+            && !(
+                app()->environment('testing')
+                && $conexion->getDatabaseName() === 'joysys_testing'
+                && $conexion->transactionLevel() >= 1
+            )
+        ) {
+            throw new \LogicException(
+                'CajaService debe controlar la transaccion exterior.'
+            );
+        }
+
+        if (self::$contextoTransaccional !== null) {
+            if (
+                !$this->tieneBloqueoTransaccional()
+                || self::$contextoTransaccional['usuario_id']
+                    !== (int) $usuario->id
+                || self::$contextoTransaccional['sucursal_id']
+                    !== $sucursalId
+            ) {
+                throw new AuthorizationException(
+                    'El contexto transaccional no corresponde al actor.'
+                );
+            }
+        }
 
         $bloqueo = 'joysys:caja:'.sha1(
             $conexion->getDatabaseName()
@@ -107,11 +166,28 @@ class CajaService
 
         if ((int) ($resultado->adquirido ?? 0) !== 1) {
             throw ValidationException::withMessages([
-                'caja' => 'El módulo de caja está ocupado. Intenta nuevamente.',
+                'caja' => 'El mÃƒÂ³dulo de caja estÃƒÂ¡ ocupado. Intenta nuevamente.',
             ]);
         }
 
+        $contextoAnterior = self::$contextoTransaccional;
+
         try {
+            if ($contextoAnterior === null) {
+                $identidad = $conexion->selectOne(
+                    'SELECT CONNECTION_ID() AS conexion',
+                    [],
+                    false
+                );
+
+                self::$contextoTransaccional = [
+                    'conexion' => $conexion,
+                    'conexion_id' => (string) $identidad->conexion,
+                    'usuario_id' => (int) $usuario->id,
+                    'sucursal_id' => $sucursalId,
+                ];
+            }
+
             return $conexion->transaction(
                 function () use (
                     $usuario,
@@ -135,6 +211,8 @@ class CajaService
                 1
             );
         } finally {
+            self::$contextoTransaccional = $contextoAnterior;
+
             $conexion->selectOne(
                 'SELECT RELEASE_LOCK(?) AS liberado',
                 [$bloqueo],
@@ -233,7 +311,7 @@ class CajaService
 
         if ($consulta->exists()) {
             throw ValidationException::withMessages([
-                'codigo' => 'El código ya existe en esta sucursal.',
+                'codigo' => 'El cÃƒÂ³digo ya existe en esta sucursal.',
             ]);
         }
     }
@@ -242,7 +320,7 @@ class CajaService
     {
         if ($caja->sesiones()->where('estado', 'abierta')->exists()) {
             throw ValidationException::withMessages([
-                'caja' => 'La caja tiene una sesión abierta.',
+                'caja' => 'La caja tiene una sesiÃƒÂ³n abierta.',
             ]);
         }
     }
@@ -272,7 +350,7 @@ class CajaService
         } catch (QueryException $exception) {
             if ((int) ($exception->errorInfo[1] ?? 0) === 1062) {
                 throw ValidationException::withMessages([
-                    'codigo' => 'El código ya existe en esta sucursal.',
+                    'codigo' => 'El cÃƒÂ³digo ya existe en esta sucursal.',
                 ]);
             }
 
@@ -305,7 +383,7 @@ class CajaService
                         && $actual->sesiones()->exists()
                     ) {
                         throw ValidationException::withMessages([
-                            'codigo' => 'El código no puede cambiar después de registrar sesiones.',
+                            'codigo' => 'El cÃƒÂ³digo no puede cambiar despuÃƒÂ©s de registrar sesiones.',
                         ]);
                     }
 
@@ -324,7 +402,7 @@ class CajaService
         } catch (QueryException $exception) {
             if ((int) ($exception->errorInfo[1] ?? 0) === 1062) {
                 throw ValidationException::withMessages([
-                    'codigo' => 'El código ya existe en esta sucursal.',
+                    'codigo' => 'El cÃƒÂ³digo ya existe en esta sucursal.',
                 ]);
             }
 

@@ -20,6 +20,7 @@ class DetallePago extends Model
         'referencia',
         'detalle_adicional',
         'detalle_pago_original_id',
+        'saldo_favor_id',
     ];
 
     protected function casts(): array
@@ -64,4 +65,13 @@ class DetallePago extends Model
             'id'
         );
     }
+
+    public function saldoFavor(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(
+            SaldoFavor::class,
+            'saldo_favor_id'
+        );
+    }
+
 }

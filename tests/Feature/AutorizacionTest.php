@@ -34,14 +34,17 @@ class AutorizacionTest extends TestCase
     ];
 
     private const PERMISOS_ADICIONALES_ENCARGADO = [
+        'saldos_favor.generar',
         'sucursales.ver',
         'ventas.descuento_superior',
+        'pagos.reembolsar',
         'caja.registrar_gasto',
         'caja.registrar_retiro',
         'reportes.ver',
     ];
 
     private const PERMISOS_EXCLUSIVOS_ADMINISTRADOR = [
+        'saldos_favor.cancelar',
         'usuarios.ver',
         'usuarios.crear',
         'usuarios.editar',
@@ -149,7 +152,7 @@ class AutorizacionTest extends TestCase
     ): void {
         $todos = $this->permisosAdministrador();
 
-        $this->assertCount(44, $todos);
+        $this->assertCount(47, $todos);
 
         $this->assertEqualsCanonicalizing(
             $todos,
@@ -207,10 +210,10 @@ class AutorizacionTest extends TestCase
 
         $this->assertSame(3, Role::count());
 
-        $this->assertSame(44, Permiso::count());
+        $this->assertSame(47, Permiso::count());
 
         $this->assertSame(
-            83,
+            88,
             DB::table('rol_permiso')->count()
         );
     }
@@ -221,7 +224,7 @@ class AutorizacionTest extends TestCase
 
         $permisos = $this->permisosAdministrador();
 
-        $this->assertCount(44, $permisos);
+        $this->assertCount(47, $permisos);
 
         $this->verificarMatriz($usuario, $permisos);
     }
@@ -232,7 +235,7 @@ class AutorizacionTest extends TestCase
 
         $permisos = $this->permisosEncargado();
 
-        $this->assertCount(22, $permisos);
+        $this->assertCount(24, $permisos);
 
         $this->verificarMatriz($usuario, $permisos);
     }
@@ -540,6 +543,105 @@ class AutorizacionTest extends TestCase
             $usuario,
             self::MODULOS_EMPLEADO,
             $ocultos
+        );
+    }
+
+    public function test_instalacion_incremental_permiso_reembolso(): void
+    {
+        $permiso = $this->obtenerPermiso('pagos.reembolsar');
+
+        DB::table('rol_permiso')
+            ->where('permiso_id', $permiso->id)
+            ->delete();
+
+        $permiso->delete();
+
+        $this->assertSame(46, Permiso::count());
+        $this->assertSame(86, DB::table('rol_permiso')->count());
+
+        $anteriores = DB::table('rol_permiso')
+            ->orderBy('rol_id')
+            ->orderBy('permiso_id')
+            ->get()
+            ->map(fn ($fila) => (array) $fila)
+            ->all();
+
+        $this->seed(
+            \Database\Seeders\PermisoReembolsoSeeder::class
+        );
+
+        $nuevo = $this->obtenerPermiso('pagos.reembolsar');
+
+        $this->assertSame(47, Permiso::count());
+        $this->assertSame(88, DB::table('rol_permiso')->count());
+
+        $conservados = DB::table('rol_permiso')
+            ->where('permiso_id', '!=', $nuevo->id)
+            ->orderBy('rol_id')
+            ->orderBy('permiso_id')
+            ->get()
+            ->map(fn ($fila) => (array) $fila)
+            ->all();
+
+        $this->assertSame($anteriores, $conservados);
+
+        foreach ([
+            'administrador' => true,
+            'encargado' => true,
+            'empleado' => false,
+        ] as $slug => $esperado) {
+            $usuario = $this->crearUsuario($slug);
+
+            $this->assertSame(
+                $esperado,
+                $usuario->can(
+                    'joysys.permiso',
+                    'pagos.reembolsar'
+                )
+            );
+        }
+    }
+
+    public function test_seeder_reembolso_idempotente(): void
+    {
+        $antesPermisos = DB::table('permisos')
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($fila) => (array) $fila)
+            ->all();
+
+        $antesAsignaciones = DB::table('rol_permiso')
+            ->orderBy('rol_id')
+            ->orderBy('permiso_id')
+            ->get()
+            ->map(fn ($fila) => (array) $fila)
+            ->all();
+
+        $this->seed(
+            \Database\Seeders\PermisoReembolsoSeeder::class
+        );
+
+        $this->seed(
+            \Database\Seeders\PermisoReembolsoSeeder::class
+        );
+
+        $this->assertSame(
+            $antesPermisos,
+            DB::table('permisos')
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($fila) => (array) $fila)
+                ->all()
+        );
+
+        $this->assertSame(
+            $antesAsignaciones,
+            DB::table('rol_permiso')
+                ->orderBy('rol_id')
+                ->orderBy('permiso_id')
+                ->get()
+                ->map(fn ($fila) => (array) $fila)
+                ->all()
         );
     }
 }

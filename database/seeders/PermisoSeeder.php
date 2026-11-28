@@ -75,6 +75,12 @@ class PermisoSeeder extends Seeder
         'pagos' => [
             'pagos.ver' => 'Consultar pagos',
             'pagos.registrar' => 'Registrar pagos',
+            'pagos.reembolsar' => 'Autorizar reembolsos',
+        ],
+
+        'saldos_favor' => [
+            'saldos_favor.generar' => 'Generar saldos a favor autorizados',
+            'saldos_favor.cancelar' => 'Cancelar saldos a favor',
         ],
 
         'caja' => [

@@ -72,6 +72,8 @@ class RolPermisoSeeder extends Seeder
                 [
                     'sucursales.ver',
                     'ventas.descuento_superior',
+                    'pagos.reembolsar',
+            'saldos_favor.generar',
                     'caja.registrar_gasto',
                     'caja.registrar_retiro',
                     'reportes.ver',

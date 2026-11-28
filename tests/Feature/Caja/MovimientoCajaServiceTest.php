@@ -955,8 +955,7 @@ class MovimientoCajaServiceTest extends TestCase
             $total = bcadd($total, $partida[1], 4);
         }
 
-        $pago = \App\Models\Pago::query()->create(
-            array_replace([
+        $datosPago = array_replace([
                 'sucursal_id' => $this->sucursal,
                 'referencia_tipo' => 'venta',
                 'referencia_id' => 1,
@@ -966,8 +965,15 @@ class MovimientoCajaServiceTest extends TestCase
                 'moneda' => 'MXN',
                 'estado' => 'confirmado',
                 'fecha_pago' => now(),
-            ], $cambios)
-        );
+            ], $cambios);
+
+        $estadoFinal = $datosPago['estado'];
+        $fechaFinal = $datosPago['fecha_pago'];
+
+        $datosPago['estado'] = 'pendiente';
+        $datosPago['fecha_pago'] = null;
+
+        $pago = \App\Models\Pago::query()->create($datosPago);
 
         foreach ($partidas as $partida) {
             $pago->detalles()->create([
@@ -979,7 +985,14 @@ class MovimientoCajaServiceTest extends TestCase
             ]);
         }
 
-        return $pago;
+        if ($estadoFinal !== 'pendiente') {
+            $pago->forceFill([
+                'estado' => $estadoFinal,
+                'fecha_pago' => $fechaFinal,
+            ])->save();
+        }
+
+        return $pago->refresh();
     }
 
     public function test_m33_compensacion_parcial(): void
